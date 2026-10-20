@@ -12,9 +12,11 @@ namespace :rbs do
     sh "rbs-inline", "--output=sig/generated", "lib"
   end
 
-  # CI runs this so a forgotten regeneration fails the build instead of shipping stale signatures.
+  # CI runs this so a forgotten regeneration fails the build instead of shipping stale signatures. Intent-to-add makes
+  # newly generated files visible to `git diff`, which otherwise ignores untracked files.
   desc "Fail if sig/generated is out of date with lib/"
   task drift: :generate do
+    sh "git", "add", "--intent-to-add", "--", "sig/generated"
     sh "git", "diff", "--exit-code", "--", "sig/generated"
   end
 end
