@@ -1,0 +1,4 @@
+# The dotenv gem ships no RBS.
+module Dotenv
+  def self.load: (*untyped) -> untyped
+end

@@ -1,0 +1,11 @@
+# Generated from lib/band_mcp/tools/ping.rb with RBS::Inline
+
+module BandMCP
+  module Tools
+    # Connectivity check. Makes no network call and never reveals the token, only whether one is configured.
+    class Ping < MCP::Tool
+      # : (**untyped) -> untyped
+      def self.call: (**untyped) -> untyped
+    end
+  end
+end

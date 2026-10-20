@@ -1,0 +1,5 @@
+# Generated from lib/band_mcp/version.rb with RBS::Inline
+
+module BandMCP
+  VERSION: String
+end

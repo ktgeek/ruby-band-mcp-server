@@ -1,0 +1,8 @@
+# Generated from lib/band_mcp.rb with RBS::Inline
+
+module BandMCP
+  TOOLS: Array[singleton(MCP::Tool)]
+
+  # : () -> untyped
+  def self.build_server: () -> untyped
+end
