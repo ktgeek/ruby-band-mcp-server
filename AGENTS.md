@@ -15,6 +15,16 @@ bundle install
 cp .env.example .env       # then set BAND_ACCESS_TOKEN
 ```
 
+## Commands
+
+Run these under `bundle exec`.
+
+- `rbs-inline --output=sig/generated lib` regenerates `sig/generated/` after changing annotations in `lib/`.
+- `rbs collection install` fetches third-party RBS into the git-ignored `.gem_rbs_collection/` (pinned by
+  `rbs_collection.lock.yaml`).
+- `steep check` type-checks `lib/` against `sig/`.
+- `rubocop` lints.
+
 ## Workflow
 
 - `main` is protected. Never commit to it directly: work on a branch, open a PR, and wait for green CI.

@@ -6,7 +6,7 @@ require "dotenv"
 
 module BandMCP
   module Config
-    ROOT = File.expand_path("../..", __dir__) #: String
+    ROOT = File.expand_path("../..", __dir__.to_s) #: String
 
     # Loads the repo's .env by absolute path so the server works from any cwd. Dotenv.load never overrides values
     # already in ENV, which lets an MCP client's `env` setting win over the file.

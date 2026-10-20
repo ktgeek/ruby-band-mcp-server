@@ -1,0 +1,23 @@
+# The mcp gem ships no RBS. Everything we touch is `untyped` until usage grows enough to justify real signatures.
+module MCP
+  class Tool
+    def self.tool_name: (*untyped) -> untyped
+    def self.description: (*untyped) -> untyped
+    def self.input_schema: (*untyped, **untyped) -> untyped
+
+    class Response
+      def initialize: (*untyped, **untyped) -> void
+    end
+  end
+
+  class Server
+    def initialize: (**untyped) -> void
+
+    module Transports
+      class StdioTransport
+        def initialize: (untyped server) -> void
+        def open: () -> untyped
+      end
+    end
+  end
+end
