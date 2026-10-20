@@ -17,9 +17,12 @@ cp .env.example .env       # then set BAND_ACCESS_TOKEN
 
 ## Commands
 
-Run these under `bundle exec`.
+Run these under `bundle exec`. `rake` with no arguments runs rubocop, `rbs:drift`, steep, and the specs, which is what
+CI checks; `rake -T` lists the individual tasks.
 
-- `rbs-inline --output=sig/generated lib` regenerates `sig/generated/` after changing annotations in `lib/`.
+- `rake rbs:generate` (or `rbs-inline --output=sig/generated lib`) regenerates `sig/generated/` after changing
+  annotations in `lib/`; commit the result. `rake rbs:drift` fails if the committed output is stale.
+- `rake audit` checks `Gemfile.lock` against the Ruby advisory database. It needs the network.
 - `rbs collection install` fetches third-party RBS into the git-ignored `.gem_rbs_collection/` (pinned by
   `rbs_collection.lock.yaml`).
 - `steep check` type-checks `lib/` against `sig/`.
