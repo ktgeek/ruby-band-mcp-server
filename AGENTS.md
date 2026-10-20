@@ -1,0 +1,37 @@
+# AGENTS.md
+
+Guidance for AI coding agents working in this repository. `CLAUDE.md` is a symlink to this file.
+
+## Project
+
+An MCP (Model Context Protocol) server for the [BAND Open API](https://developers.band.us/develop/guide/api), written
+in Ruby on the official [`mcp` gem](https://github.com/modelcontextprotocol/ruby-sdk) and served over stdio.
+
+## Workflow
+
+- `main` is protected. Never commit to it directly: work on a branch, open a PR, and wait for green CI.
+- Land each logical change as its own small commit that leaves the tree working.
+- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): lowercase
+  imperative subject of 50 characters (72 at most), body wrapped at 72.
+- Keep this file current: when a change adds a command, task, or architectural piece, document it here in the same
+  commit.
+
+## Conventions
+
+- Ruby 4.0 (see `.ruby-version`). Style is enforced by RuboCop (with `rubocop-performance` and `rubocop-rspec`):
+  double-quoted strings, `# frozen_string_literal: true`, 120-character lines.
+- Everything under `lib/` is typed with [rbs-inline](https://github.com/soutaro/rbs-inline) annotations and checked
+  by Steep at its strict level. Never edit `sig/generated/` by hand; regenerate it. `sig/shims/` holds hand-written
+  `untyped` stubs for gems that ship no RBS (`mcp`, `dotenv`).
+- stdout belongs to the MCP protocol. Anything that is not a JSON-RPC message (logs, diagnostics) goes to stderr.
+- `BAND_ACCESS_TOKEN` is a secret. Never log it, echo it in a tool response, or commit `.env`.
+
+## BAND API notes
+
+- Base URL: `https://openapi.band.us`.
+- Authentication is a bearer token: send `Authorization: Bearer <access_token>` on every request.
+- Version prefixes differ per endpoint (`/v2/…`, `/v2.1/…`, `/v2.2/…`), so the client must carry a version per
+  endpoint rather than one global prefix.
+- Paged responses return `next_params`, which is passed back to fetch the next page.
+- The token is issued for an app registered at `https://developers.band.us`. This server only consumes it and runs no
+  OAuth flow.
