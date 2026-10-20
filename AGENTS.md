@@ -43,3 +43,14 @@ cp .env.example .env       # then set BAND_ACCESS_TOKEN
 - Paged responses return `next_params`, which is passed back to fetch the next page.
 - The token is issued for an app registered at `https://developers.band.us`. This server only consumes it and runs no
   OAuth flow.
+
+## Architecture
+
+- `bin/band-mcp-server` is a thin launcher: it sets up Bundler and the load path, loads `.env`, and runs the stdio
+  transport. It holds no logic.
+- `lib/band_mcp.rb` requires the pieces and exposes `BandMCP.build_server`, which registers every class in
+  `BandMCP::TOOLS`.
+- `lib/band_mcp/config.rb` owns environment access (`.env` loading, `BAND_ACCESS_TOKEN`). Existing ENV values win over
+  `.env`.
+- `lib/band_mcp/tools/` holds one `MCP::Tool` subclass per tool. To add a tool, create the class there and append it
+  to `BandMCP::TOOLS`.

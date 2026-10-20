@@ -21,3 +21,7 @@ Style/StringLiterals:
 
 Layout/LineLength:
   Max: 120
+
+# rbs-inline annotations are written as `#:` comments.
+Layout/LeadingCommentSpace:
+  AllowRBSInlineAnnotation: true
