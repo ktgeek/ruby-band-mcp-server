@@ -7,6 +7,14 @@ Guidance for AI coding agents working in this repository. `CLAUDE.md` is a symli
 An MCP (Model Context Protocol) server for the [BAND Open API](https://developers.band.us/develop/guide/api), written
 in Ruby on the official [`mcp` gem](https://github.com/modelcontextprotocol/ruby-sdk) and served over stdio.
 
+## Setup
+
+```sh
+chruby ruby-4.0.5          # or any manager that reads .ruby-version
+bundle install
+cp .env.example .env       # then set BAND_ACCESS_TOKEN
+```
+
 ## Workflow
 
 - `main` is protected. Never commit to it directly: work on a branch, open a PR, and wait for green CI.
