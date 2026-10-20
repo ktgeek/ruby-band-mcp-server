@@ -32,6 +32,8 @@ CI checks; `rake -T` lists the individual tasks.
 ## Workflow
 
 - `main` is protected. Never commit to it directly: work on a branch, open a PR, and wait for green CI.
+- CI (`.github/workflows/ci.yml`) runs four parallel jobs on every PR: `lint`, `typecheck` (rbs drift + steep), `test`,
+  and `audit`. Dependabot proposes weekly bundler and GitHub Actions updates.
 - Land each logical change as its own small commit that leaves the tree working.
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): lowercase
   imperative subject of 50 characters (72 at most), body wrapped at 72.
