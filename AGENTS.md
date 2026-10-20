@@ -23,6 +23,7 @@ Run these under `bundle exec`.
 - `rbs collection install` fetches third-party RBS into the git-ignored `.gem_rbs_collection/` (pinned by
   `rbs_collection.lock.yaml`).
 - `steep check` type-checks `lib/` against `sig/`.
+- `rspec` runs the specs in `spec/`; they mirror the layout of `lib/`.
 - `rubocop` lints.
 
 ## Workflow
