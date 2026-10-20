@@ -16,7 +16,7 @@ RSpec.describe BandMCP::Tools::Ping do
   end
 
   it "does not reveal the token" do
-    allow(BandMCP::Config).to receive_messages(access_token?: true, access_token: "secret")
+    ENV["BAND_ACCESS_TOKEN"] = "secret"
 
     expect(response_text).not_to include("secret")
   end

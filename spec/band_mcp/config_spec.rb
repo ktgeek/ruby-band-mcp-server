@@ -3,13 +3,6 @@
 require "tmpdir"
 
 RSpec.describe BandMCP::Config do
-  around do |example|
-    original = ENV.fetch("BAND_ACCESS_TOKEN", nil)
-    example.run
-  ensure
-    ENV["BAND_ACCESS_TOKEN"] = original
-  end
-
   describe ".access_token" do
     it "returns the token from ENV" do
       ENV["BAND_ACCESS_TOKEN"] = "secret"
