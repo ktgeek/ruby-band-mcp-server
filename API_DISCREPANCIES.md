@@ -47,8 +47,10 @@ When you find another difference, add it here in the same commit as the code tha
 ### The permissions response shows two key names
 
 - **Docs**: the field table names the result key `permissions`; the example response shows `permission`.
-- **Live**: `permissions`, a list of the granted names.
-- **We do**: `check_permissions` reads either, in case the example is right somewhere. (#6)
+- **Live**: `permissions`, a list of the granted names. Only a band where all three were granted has been read, so
+  what BAND sends for partial or empty grants is not known (see "Not verified").
+- **We do**: `check_permissions` reads only `permissions`. A response with just `permission` is reported as an
+  unexpected format instead of as everything denied. (#6)
 
 ## What the docs leave out
 

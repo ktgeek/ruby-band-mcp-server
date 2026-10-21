@@ -35,8 +35,8 @@ RSpec.describe BandMCP::Tools::CheckPermissions do
   context "when BAND uses the singular key from its docs example" do
     let(:result_data) { { permission: %w[posting] } }
 
-    it "still reads the granted permissions" do
-      expect(result).to include("granted" => %w[posting])
+    it "reports a tool error rather than denying everything" do
+      expect(call).to be_error
     end
   end
 
