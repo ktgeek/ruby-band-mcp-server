@@ -20,8 +20,9 @@ module BandMCP
       input_schema(
         properties: {
           band_key: { type: "string", minLength: 1, description: "Band to read, from list_bands." },
-          after: { type: "string", description: "The next_after value from a previous result." },
-          locale: { type: "string", description: "Region and language for BAND's response. Defaults to en_US." }
+          after: { type: "string", minLength: 1, description: "The next_after value from a previous result." },
+          locale: { type: "string", minLength: 1,
+                    description: "Region and language for BAND's response. Defaults to en_US." }
         },
         required: %w[band_key]
       )
@@ -32,9 +33,15 @@ module BandMCP
         with_client do |client|
           params = { "band_key" => band_key, "locale" => locale, "after" => after }.compact
           data = client.get("/v2/band/posts", params)
-          # Array() turns a missing list into [], and grep(Hash) skips anything that is not a post object.
-          posts = Array(data["items"]).grep(Hash).map { |item| summarize_post(item) }
-          json_response({ "posts" => posts, "next_after" => next_after(data) })
+          items = data["items"]
+          # A missing list means an empty band, but a list that isn't an array means BAND changed shape; saying
+          # "no posts" there would mislead the model.
+          if items.nil? || items.is_a?(Array)
+            posts = Array(items).grep(Hash).map { |item| summarize_post(item) }
+            json_response({ "posts" => posts, "next_after" => next_after(data) })
+          else
+            text_response("BAND returned posts in an unexpected format", error: true)
+          end
         end
       end
 

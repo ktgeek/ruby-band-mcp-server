@@ -58,6 +58,44 @@ RSpec.describe BandMCP::Tools::ListPosts do
     end
   end
 
+  context "when next_params has no usable after" do
+    let(:next_params) { { after: 7, limit: "20" } }
+
+    it "returns a null next_after" do
+      expect(result["next_after"]).to be_nil
+    end
+  end
+
+  context "when paging is not an object" do
+    let(:response_data) { { paging: "oops", items: items } }
+
+    it "still returns the posts with a null next_after" do
+      expect(result).to include("next_after" => nil, "posts" => have_attributes(size: 2))
+    end
+  end
+
+  context "when items contains entries that are not posts" do
+    let(:items) { ["junk", nil, { post_key: "p9", content: "ok" }] }
+
+    it "skips them" do
+      expect(result["posts"].map { |post| post["post_key"] }).to eq(["p9"])
+    end
+  end
+
+  context "when items is not a list" do
+    let(:response_data) { { paging: nil, items: { post_key: "p1" } } }
+
+    it "reports a tool error rather than an empty band" do
+      expect(call).to be_error
+    end
+  end
+
+  it "rejects empty after and locale values in the input schema" do
+    properties = described_class.input_schema_value.to_h[:properties]
+
+    expect(properties.values_at(:after, :locale).map { |property| property[:minLength] }).to eq([1, 1])
+  end
+
   context "when the band has no posts" do
     let(:response_data) { { paging: nil } }
 
