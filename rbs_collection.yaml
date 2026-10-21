@@ -15,3 +15,9 @@ gems:
     ignore: true
   - name: json_schemer
     ignore: true
+
+# Stdlib the client uses directly; Bundler doesn't see these, so the collection has to be told.
+  - name: net-http
+  - name: openssl
+  - name: socket
+  - name: timeout
