@@ -17,6 +17,9 @@ A typical flow is `list_bands` to find the band, `create_post` to publish, then 
 `post_key` to confirm. `create_post` is marked as not read-only, so MCP clients such as Claude Desktop can ask before
 running it.
 
+To browse what is already in a band, use `list_posts`. BAND picks the page size (20 posts); when the result's
+`next_after` is not null, pass it back as `after` to get the next page.
+
 ## Requirements
 
 Ruby 4.0.5 (see `.ruby-version`), for example with [chruby](https://github.com/postmodern/chruby):
