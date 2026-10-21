@@ -75,4 +75,6 @@ CI checks; `rake -T` lists the individual tasks.
   `result_code`). Error messages must never contain the token or the request URL.
 - Specs stub HTTP with WebMock, which also fails any unstubbed request, so specs never reach the network.
 - `lib/band_mcp/tools/` holds one `MCP::Tool` subclass per tool. To add a tool, create the class there and append it
-  to `BandMCP::TOOLS`.
+  to `BandMCP::TOOLS`. BAND-backed tools `extend BandMCP::Tools::Helpers` (`lib/band_mcp/tools/helpers.rb`): wrap the
+  work in `with_client { |client| … }` so a `BandMCP::Error` becomes an MCP error response, and answer with
+  `json_response`.
