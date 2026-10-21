@@ -1,0 +1,19 @@
+# Generated from lib/band_mcp/tools/get_post.rb with RBS::Inline
+
+module BandMCP
+  module Tools
+    class GetPost < MCP::Tool
+      extend Helpers
+
+      PASSTHROUGH_FIELDS: Array[String]
+
+      # : (band_key: String, post_key: String, **untyped) -> untyped
+      def self.call: (band_key: String, post_key: String, **untyped) -> untyped
+
+      # Drops the photo/video payloads and author profile details, and turns BAND's epoch milliseconds into ISO 8601
+      # so the model doesn't have to.
+      # : (Hash[String, untyped] post) -> Hash[String, untyped]
+      def self.summarize: (Hash[String, untyped] post) -> Hash[String, untyped]
+    end
+  end
+end
