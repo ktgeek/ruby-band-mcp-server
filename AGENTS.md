@@ -77,4 +77,6 @@ CI checks; `rake -T` lists the individual tasks.
 - `lib/band_mcp/tools/` holds one `MCP::Tool` subclass per tool. To add a tool, create the class there and append it
   to `BandMCP::TOOLS`. BAND-backed tools `extend BandMCP::Tools::Helpers` (`lib/band_mcp/tools/helpers.rb`): wrap the
   work in `with_client { |client| … }` so a `BandMCP::Error` becomes an MCP error response, and answer with
-  `json_response`.
+  `json_response`. Answer a response of the wrong shape with `unexpected_format`. A write tool should rescue
+  `BandMCP::NetworkError` and answer with `uncertain_outcome`, because a dropped connection doesn't say whether the
+  write happened.
