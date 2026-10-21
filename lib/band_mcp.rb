@@ -17,11 +17,12 @@ require_relative "band_mcp/tools/check_permissions"
 require_relative "band_mcp/tools/remove_post"
 require_relative "band_mcp/tools/list_comments"
 require_relative "band_mcp/tools/create_comment"
+require_relative "band_mcp/tools/remove_comment"
 
 module BandMCP
   TOOLS = [
     Tools::Ping, Tools::ListBands, Tools::CreatePost, Tools::GetPost, Tools::ListPosts, Tools::CheckPermissions,
-    Tools::RemovePost, Tools::ListComments, Tools::CreateComment
+    Tools::RemovePost, Tools::ListComments, Tools::CreateComment, Tools::RemoveComment
   ].freeze #: Array[singleton(MCP::Tool)]
 
   #: () -> untyped
