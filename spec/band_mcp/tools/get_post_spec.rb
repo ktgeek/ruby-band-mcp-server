@@ -43,6 +43,14 @@ RSpec.describe BandMCP::Tools::GetPost do
     expect(result).not_to have_key("photo")
   end
 
+  context "when author and created_at have an unexpected shape" do
+    let(:post) { super().merge(author: "Jordan", created_at: "yesterday") }
+
+    it "omits them instead of failing" do
+      expect(result).not_to include("author", "created_at")
+    end
+  end
+
   it "reports a response without a post as a tool error" do
     stub_request(:get, post_url).with(query: hash_including({}))
                                 .to_return(body: { result_code: 1, result_data: {} }.to_json)

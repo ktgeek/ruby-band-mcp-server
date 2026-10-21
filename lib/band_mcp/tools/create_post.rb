@@ -18,7 +18,7 @@ module BandMCP
       input_schema(
         properties: {
           band_key: { type: "string", minLength: 1, description: "Band to post to, from list_bands." },
-          content: { type: "string", minLength: 1, description: "Body of the post." },
+          content: { type: "string", pattern: "\\S", description: "Body of the post. Must not be blank." },
           do_push: { type: "boolean", description: "Push-notify subscribed members. Defaults to false." }
         },
         required: %w[band_key content]
@@ -33,6 +33,11 @@ module BandMCP
             { "band_key" => band_key, "content" => content, "do_push" => do_push }
           )
           json_response(data.slice("band_key", "post_key"))
+        rescue NetworkError => e
+          # Unlike BAND rejecting the post, a dropped connection says nothing about whether it was published, and a
+          # blind retry would duplicate it for every member.
+          text_response("#{e.message}. The post may still have been published; check the band before retrying.",
+                        error: true)
         end
       end
     end

@@ -22,8 +22,8 @@ module BandMCP
       #: (**untyped) -> untyped
       def self.call(**)
         with_client do |client|
-          bands = client.get("/v2.1/bands").fetch("bands", [])
-          json_response(bands.map { |band| band.slice(*FIELDS) })
+          bands = client.get("/v2.1/bands")["bands"]
+          json_response(bands.is_a?(Array) ? bands.map { |band| band.slice(*FIELDS) } : [])
         end
       end
     end
