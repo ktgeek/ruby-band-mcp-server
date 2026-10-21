@@ -16,6 +16,7 @@ written in Ruby on the official [`mcp` gem](https://github.com/modelcontextproto
 | `remove_post`       | Permanently deletes a post by `band_key` and `post_key`. It cannot be undone.                  |
 | `list_comments`     | Lists a post's comments, oldest first unless `newest_first`, paged with `after`.               |
 | `create_comment`    | Adds a comment to a post. BAND does not return its key; find it with `list_comments`.          |
+| `remove_comment`    | Permanently deletes a comment by `comment_key`. It cannot be undone.                           |
 
 A typical flow is `list_bands` to find the band, `create_post` to publish, then `get_post` with the returned
 `post_key` to confirm. `create_post` is marked as not read-only, so MCP clients such as Claude Desktop can ask before
@@ -33,7 +34,8 @@ afterwards to confirm it landed and to get its `comment_key`.
 
 To take a post down, use `remove_post`; it is marked destructive, so clients can ask before running it. Run
 `check_permissions` with `contents_deletion` first. BAND's docs say that permission does not check authorship, so
-removing someone else's post can still fail.
+removing someone else's post can still fail. `remove_comment` works the same way on a `comment_key` from
+`list_comments`, and BAND's docs add that it can only remove comments made through this app.
 
 ## Requirements
 
@@ -125,8 +127,8 @@ Then ask Claude to run `ping`, which reports whether the token is set without sh
 in?" to confirm the connection. Desktop asks before it runs a tool unless you have set that tool to always allow.
 Keep the prompt on for `create_post` and `create_comment`: they publish to every member of the band. Read the band and
 the wording in the request before approving. For `create_post`, members are push-notified only if the request sets
-`do_push`. Keep the prompt on for `remove_post` too: the post is deleted for every member and cannot be restored, so
-check the `post_key` before approving.
+`do_push`. Keep the prompt on for `remove_post` and `remove_comment` too: what they delete is gone for every member and
+cannot be restored, so check the keys before approving.
 
 To check the launch command outside Desktop, run it with a bare environment. A JSON `initialize` response means the
 server starts under that Ruby with its gems; it does not check the token, which `ping` does:

@@ -1,0 +1,14 @@
+# Generated from lib/band_mcp/tools/remove_comment.rb with RBS::Inline
+
+module BandMCP
+  module Tools
+    class RemoveComment < MCP::Tool
+      extend Helpers
+
+      UNCERTAIN_OUTCOME: String
+
+      # : (band_key: String, post_key: String, comment_key: String, **untyped) -> untyped
+      def self.call: (band_key: String, post_key: String, comment_key: String, **untyped) -> untyped
+    end
+  end
+end
