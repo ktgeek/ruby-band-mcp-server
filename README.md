@@ -11,6 +11,7 @@ written in Ruby on the official [`mcp` gem](https://github.com/modelcontextproto
 | `list_bands`  | Lists the bands you have joined, with the `band_key` the other tools need.                      |
 | `create_post` | Publishes a text post to a band. Members are push-notified only if `do_push` is true.           |
 | `get_post`    | Fetches one post by `band_key` and `post_key`, e.g. to confirm a `create_post` landed.          |
+| `list_posts`  | Lists a band's recent posts, newest-modified first, paged with an `after` cursor.               |
 
 A typical flow is `list_bands` to find the band, `create_post` to publish, then `get_post` with the returned
 `post_key` to confirm. `create_post` is marked as not read-only, so MCP clients such as Claude Desktop can ask before
