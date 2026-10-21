@@ -14,6 +14,7 @@ written in Ruby on the official [`mcp` gem](https://github.com/modelcontextproto
 | `list_posts`        | Lists a band's recent posts, newest-modified first, paged with an `after` cursor.              |
 | `check_permissions` | Reports which of `posting`, `commenting` and `contents_deletion` the user has in a band.       |
 | `remove_post`       | Permanently deletes a post by `band_key` and `post_key`. It cannot be undone.                  |
+| `list_comments`     | Lists a post's comments, oldest first unless `newest_first`, paged with `after`.               |
 
 A typical flow is `list_bands` to find the band, `create_post` to publish, then `get_post` with the returned
 `post_key` to confirm. `create_post` is marked as not read-only, so MCP clients such as Claude Desktop can ask before
@@ -21,6 +22,10 @@ running it.
 
 To browse what is already in a band, use `list_posts`. BAND picks the page size (20 posts); when the result's
 `next_after` is not null, pass it back as `after` to get the next page.
+
+To read the discussion on a post, use `list_comments` with the post's `band_key` and `post_key`. Comments come oldest
+first; set `newest_first` to reverse that. Paging works as with `list_posts`; pass the same `newest_first` along with
+`after`.
 
 To take a post down, use `remove_post`; it is marked destructive, so clients can ask before running it. Run
 `check_permissions` with `contents_deletion` first. BAND's docs say that permission does not check authorship, so

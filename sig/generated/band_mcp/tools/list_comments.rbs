@@ -1,0 +1,14 @@
+# Generated from lib/band_mcp/tools/list_comments.rb with RBS::Inline
+
+module BandMCP
+  module Tools
+    class ListComments < MCP::Tool
+      extend Helpers
+
+      NEWEST_FIRST_SORT: String
+
+      # : (band_key: String, post_key: String, ?after: String?, ?newest_first: bool, **untyped) -> untyped
+      def self.call: (band_key: String, post_key: String, ?after: String?, ?newest_first: bool, **untyped) -> untyped
+    end
+  end
+end
