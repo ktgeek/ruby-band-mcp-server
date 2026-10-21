@@ -9,7 +9,7 @@ RSpec.describe BandMCP do
     end
 
     it "registers every tool" do
-      expect(server.tools.keys).to contain_exactly("ping", "list_bands")
+      expect(server.tools.keys).to contain_exactly("ping", "list_bands", "create_post")
     end
   end
 end

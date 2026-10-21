@@ -10,9 +10,10 @@ require_relative "band_mcp/error"
 require_relative "band_mcp/client"
 require_relative "band_mcp/tools/ping"
 require_relative "band_mcp/tools/list_bands"
+require_relative "band_mcp/tools/create_post"
 
 module BandMCP
-  TOOLS = [Tools::Ping, Tools::ListBands].freeze #: Array[singleton(MCP::Tool)]
+  TOOLS = [Tools::Ping, Tools::ListBands, Tools::CreatePost].freeze #: Array[singleton(MCP::Tool)]
 
   #: () -> untyped
   def self.build_server
