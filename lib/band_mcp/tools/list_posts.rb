@@ -40,7 +40,7 @@ module BandMCP
             posts = Array(items).grep(Hash).map { |item| summarize_post(item) }
             json_response({ "posts" => posts, "next_after" => next_after(data) })
           else
-            text_response("BAND returned posts in an unexpected format", error: true)
+            unexpected_format("posts")
           end
         end
       end
