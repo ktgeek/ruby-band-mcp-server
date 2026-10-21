@@ -5,6 +5,9 @@ module BandMCP
     class CreatePost < MCP::Tool
       extend Helpers
 
+      # A blind retry would duplicate the post for every member.
+      UNCERTAIN_OUTCOME: String
+
       # : (band_key: String, content: String, ?do_push: bool, **untyped) -> untyped
       def self.call: (band_key: String, content: String, ?do_push: bool, **untyped) -> untyped
     end

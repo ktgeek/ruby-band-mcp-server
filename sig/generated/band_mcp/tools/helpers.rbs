@@ -19,10 +19,10 @@ module BandMCP
       # : (String text, ?error: bool) -> untyped
       def text_response: (String text, ?error: bool) -> untyped
 
-      # For a write whose connection dropped. Unlike BAND rejecting it, that says nothing about whether it took
-      # effect, and a blind retry could repeat it, so the model is told to check first.
-      # : (NetworkError error, String advice) -> untyped
-      def uncertain_outcome: (NetworkError error, String advice) -> untyped
+      # `with_client` for a write. When the connection drops, that says nothing about whether the write took effect,
+      # and a blind retry could repeat it, so the model is told to check first. `advice` says how.
+      # : (String advice) { (Client) -> untyped } -> untyped
+      def with_write_client: (String advice) { (Client) -> untyped } -> untyped
 
       # For a response whose shape BAND changed. Reporting it as an error keeps it from reading as an empty or
       # all-denied answer.

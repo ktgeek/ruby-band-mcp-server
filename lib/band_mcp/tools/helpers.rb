@@ -34,11 +34,15 @@ module BandMCP
         MCP::Tool::Response.new([{ type: "text", text: text }], error: error)
       end
 
-      # For a write whose connection dropped. Unlike BAND rejecting it, that says nothing about whether it took
-      # effect, and a blind retry could repeat it, so the model is told to check first.
-      #: (NetworkError error, String advice) -> untyped
-      def uncertain_outcome(error, advice)
-        text_response("#{error.message}. #{advice}", error: true)
+      # `with_client` for a write. When the connection drops, that says nothing about whether the write took effect,
+      # and a blind retry could repeat it, so the model is told to check first. `advice` says how.
+      #: (String advice) { (Client) -> untyped } -> untyped
+      def with_write_client(advice)
+        with_client do |client|
+          yield client
+        rescue NetworkError => e
+          text_response("#{e.message}. #{advice}", error: true)
+        end
       end
 
       # For a response whose shape BAND changed. Reporting it as an error keeps it from reading as an empty or

@@ -5,6 +5,9 @@ module BandMCP
     class CreateComment < MCP::Tool
       extend Helpers
 
+      # A blind retry would add a duplicate comment for every member to see.
+      UNCERTAIN_OUTCOME: String
+
       # : (band_key: String, post_key: String, content: String, **untyped) -> untyped
       def self.call: (band_key: String, post_key: String, content: String, **untyped) -> untyped
     end
