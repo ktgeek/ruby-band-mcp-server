@@ -1,0 +1,14 @@
+# Generated from lib/band_mcp/tools/list_bands.rb with RBS::Inline
+
+module BandMCP
+  module Tools
+    class ListBands < MCP::Tool
+      extend Helpers
+
+      FIELDS: Array[String]
+
+      # : (**untyped) -> untyped
+      def self.call: (**untyped) -> untyped
+    end
+  end
+end
