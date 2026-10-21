@@ -7,6 +7,8 @@ module BandMCP
     module Helpers
       POST_FIELDS: Array[String]
 
+      COMMENT_FIELDS: Array[String]
+
       # Yields a client and turns BandMCP::Error into an MCP error response.
       # : () { (Client) -> untyped } -> untyped
       def with_client: () { (Client) -> untyped } -> untyped
@@ -27,10 +29,28 @@ module BandMCP
       # : (String what) -> untyped
       def unexpected_format: (String what) -> untyped
 
-      # Drops the photo/video payloads and author profile details, and turns BAND's epoch milliseconds into ISO 8601
-      # so the model doesn't have to. Anything missing or oddly shaped is omitted rather than raised on.
       # : (Hash[String, untyped] post) -> Hash[String, untyped]
       def summarize_post: (Hash[String, untyped] post) -> Hash[String, untyped]
+
+      # : (Hash[String, untyped] comment) -> Hash[String, untyped]
+      def summarize_comment: (Hash[String, untyped] comment) -> Hash[String, untyped]
+
+      # Answers a BAND page of items as `{key => [...], "next_after" => cursor}`, yielding each item to summarize it.
+      # A missing list means an empty page, but a list that isn't an array means BAND changed shape; saying "none"
+      # there would mislead the model.
+      # : (Hash[String, untyped] data, String key) { (Hash[String, untyped]) -> untyped } -> untyped
+      def paged_response: (Hash[String, untyped] data, String key) { (Hash[String, untyped]) -> untyped } -> untyped
+
+      # BAND's next_params also carries the access token, so only the cursor is passed on. Nothing else from it may
+      # reach the model.
+      # : (Hash[String, untyped] data) -> String?
+      def next_after: (Hash[String, untyped] data) -> String?
+
+      # Keeps the listed fields and drops the photo/video payloads and author profile details, and turns BAND's epoch
+      # milliseconds into ISO 8601 so the model doesn't have to. Anything missing or oddly shaped is omitted rather
+      # than raised on.
+      # : (Hash[String, untyped] record, Array[String] fields) -> Hash[String, untyped]
+      def summarize_record: (Hash[String, untyped] record, Array[String] fields) -> Hash[String, untyped]
     end
   end
 end

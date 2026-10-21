@@ -33,26 +33,8 @@ module BandMCP
         with_client do |client|
           params = { "band_key" => band_key, "locale" => locale, "after" => after }.compact
           data = client.get("/v2/band/posts", params)
-          items = data["items"]
-          # A missing list means an empty band, but a list that isn't an array means BAND changed shape; saying
-          # "no posts" there would mislead the model.
-          if items.nil? || items.is_a?(Array)
-            posts = Array(items).grep(Hash).map { |item| summarize_post(item) }
-            json_response({ "posts" => posts, "next_after" => next_after(data) })
-          else
-            unexpected_format("posts")
-          end
+          paged_response(data, "posts") { |item| summarize_post(item) }
         end
-      end
-
-      # BAND's next_params also carries the access token, so only the cursor is passed on. Nothing else from it may
-      # reach the model.
-      #: (Hash[String, untyped] data) -> String?
-      def self.next_after(data)
-        paging = data["paging"]
-        next_params = paging["next_params"] if paging.is_a?(Hash)
-        after = next_params["after"] if next_params.is_a?(Hash)
-        after if after.is_a?(String)
       end
     end
   end
