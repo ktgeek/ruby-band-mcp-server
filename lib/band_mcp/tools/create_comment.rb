@@ -11,6 +11,9 @@ module BandMCP
     class CreateComment < MCP::Tool
       extend Helpers
 
+      # A blind retry would add a duplicate comment for every member to see.
+      UNCERTAIN_OUTCOME = "The comment may still have been added; check with list_comments before retrying." #: String
+
       tool_name "create_comment"
       description "Add a comment to a post in a BAND as the user. Visible to the band's members, so confirm the " \
                   "post and wording with the user first. BAND does not return the new comment's key; call " \
@@ -28,13 +31,10 @@ module BandMCP
 
       #: (band_key: String, post_key: String, content: String, **untyped) -> untyped
       def self.call(band_key:, post_key:, content:, **)
-        with_client do |client|
+        with_write_client(UNCERTAIN_OUTCOME) do |client|
           client.post("/v2/band/post/comment/create",
                       { "band_key" => band_key, "post_key" => post_key, "body" => content })
           json_response({ "band_key" => band_key, "post_key" => post_key, "created" => true })
-        rescue NetworkError => e
-          # A blind retry would add a duplicate comment for every member to see.
-          uncertain_outcome(e, "The comment may still have been added; check with list_comments before retrying.")
         end
       end
     end

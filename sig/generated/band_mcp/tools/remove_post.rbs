@@ -5,6 +5,8 @@ module BandMCP
     class RemovePost < MCP::Tool
       extend Helpers
 
+      UNCERTAIN_OUTCOME: String
+
       # : (band_key: String, post_key: String, **untyped) -> untyped
       def self.call: (band_key: String, post_key: String, **untyped) -> untyped
     end

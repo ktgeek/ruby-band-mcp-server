@@ -11,6 +11,9 @@ module BandMCP
     class RemovePost < MCP::Tool
       extend Helpers
 
+      UNCERTAIN_OUTCOME = "The post may already have been removed. Check with get_post before retrying: BAND " \
+                          "reporting it as deleted or not found means the removal worked." #: String
+
       tool_name "remove_post"
       description "Permanently delete a post from a BAND. It disappears for every member and cannot be undone, so " \
                   "confirm the band and post with the user first, e.g. by showing them get_post's result. " \
@@ -29,14 +32,9 @@ module BandMCP
 
       #: (band_key: String, post_key: String, **untyped) -> untyped
       def self.call(band_key:, post_key:, **)
-        with_client do |client|
+        with_write_client(UNCERTAIN_OUTCOME) do |client|
           client.post("/v2/band/post/remove", { "band_key" => band_key, "post_key" => post_key })
           json_response({ "band_key" => band_key, "post_key" => post_key, "removed" => true })
-        rescue NetworkError => e
-          uncertain_outcome(
-            e, "The post may already have been removed. Check with get_post before retrying: BAND reporting " \
-               "it as deleted or not found means the removal worked."
-          )
         end
       end
     end
