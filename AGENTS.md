@@ -79,4 +79,5 @@ CI checks; `rake -T` lists the individual tasks.
   work in `with_client { |client| … }` so a `BandMCP::Error` becomes an MCP error response, and answer with
   `json_response`. Answer a response of the wrong shape with `unexpected_format`. A write tool should rescue
   `BandMCP::NetworkError` and answer with `uncertain_outcome`, because a dropped connection doesn't say whether the
-  write happened.
+  write happened. A paged list answers with `paged_response`, which passes on only the cursor because BAND's
+  `next_params` carries the access token.
