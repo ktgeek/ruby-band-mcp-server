@@ -1,0 +1,12 @@
+# Generated from lib/band_mcp/tools/create_comment.rb with RBS::Inline
+
+module BandMCP
+  module Tools
+    class CreateComment < MCP::Tool
+      extend Helpers
+
+      # : (band_key: String, post_key: String, content: String, **untyped) -> untyped
+      def self.call: (band_key: String, post_key: String, content: String, **untyped) -> untyped
+    end
+  end
+end
