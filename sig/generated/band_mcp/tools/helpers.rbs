@@ -5,6 +5,8 @@ module BandMCP
     # Shared plumbing for tools that call BAND. Tool classes `extend` this so their `self.call` stays a one-liner and
     # every failure reaches the model as a tool error rather than crashing the server.
     module Helpers
+      POST_FIELDS: Array[String]
+
       # Yields a client and turns BandMCP::Error into an MCP error response.
       # : () { (Client) -> untyped } -> untyped
       def with_client: () { (Client) -> untyped } -> untyped
@@ -14,6 +16,11 @@ module BandMCP
 
       # : (String text, ?error: bool) -> untyped
       def text_response: (String text, ?error: bool) -> untyped
+
+      # Drops the photo/video payloads and author profile details, and turns BAND's epoch milliseconds into ISO 8601
+      # so the model doesn't have to. Anything missing or oddly shaped is omitted rather than raised on.
+      # : (Hash[String, untyped] post) -> Hash[String, untyped]
+      def summarize_post: (Hash[String, untyped] post) -> Hash[String, untyped]
     end
   end
 end
