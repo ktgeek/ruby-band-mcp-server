@@ -7,11 +7,15 @@ module BandMCP
   # it never contains the access token.
   class Error < StandardError; end
 
+  # The request failed in transit, so it may or may not have reached BAND. Matters for writes, which must not be blindly
+  # retried.
+  class NetworkError < Error; end
+
   # BAND answered, but with a failure `result_code`. See https://developers.band.us/develop/guide/api/handle_errors.
   class APIError < Error
-    attr_reader :code #: Integer?
+    attr_reader :code #: Integer
 
-    #: (Integer? code, String message) -> void
+    #: (Integer code, String message) -> void
     def initialize(code, message)
       @code = code
       super("BAND API error #{code}: #{message}")
