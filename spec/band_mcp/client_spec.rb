@@ -94,11 +94,29 @@ RSpec.describe BandMCP::Client do
       expect { client.get("/v2.1/bands") }.to raise_error(BandMCP::Error, /unexpected response/)
     end
 
-    it "raises on a network failure without echoing the exception message" do
+    it "raises a NetworkError without echoing the exception message" do
       stub_request(:get, bands_url).to_raise(Errno::ECONNREFUSED.new("#{bands_url}?access_token=#{token}"))
 
       expect { client.get("/v2.1/bands") }
-        .to raise_error(BandMCP::Error, "BAND request failed (Errno::ECONNREFUSED)")
+        .to raise_error(BandMCP::NetworkError, "BAND request failed (Errno::ECONNREFUSED)")
+    end
+
+    it "raises a NetworkError when the connection drops mid-response" do
+      stub_request(:get, bands_url).to_raise(EOFError)
+
+      expect { client.get("/v2.1/bands") }.to raise_error(BandMCP::NetworkError, /EOFError/)
+    end
+
+    it "raises a NetworkError on a timeout" do
+      stub_request(:get, bands_url).to_timeout
+
+      expect { client.get("/v2.1/bands") }.to raise_error(BandMCP::NetworkError, /Timeout/)
+    end
+
+    it "raises when the body has no result_code" do
+      stub_request(:get, bands_url).to_return(status: 500, body: { error: "boom" }.to_json)
+
+      expect { client.get("/v2.1/bands") }.to raise_error(BandMCP::Error, /unexpected response \(HTTP 500\)/)
     end
 
     it "never puts the token in an error message" do

@@ -8,6 +8,10 @@ module BandMCP
 
     SUCCESS_CODE: Integer
 
+    OPEN_TIMEOUT: Integer
+
+    READ_TIMEOUT: Integer
+
     NETWORK_ERRORS: Array[Class]
 
     @access_token: String
@@ -22,6 +26,9 @@ module BandMCP
     def post: (String path, ?Hash[String, untyped] params) -> Hash[String, untyped]
 
     private
+
+    # : (String path) -> URI::Generic
+    def uri_for: (String path) -> URI::Generic
 
     # : (URI::Generic uri, Net::HTTPRequest request) -> Hash[String, untyped]
     def perform: (URI::Generic uri, Net::HTTPRequest request) -> Hash[String, untyped]
