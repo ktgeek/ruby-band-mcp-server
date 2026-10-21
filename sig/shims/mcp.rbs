@@ -4,6 +4,7 @@ module MCP
     def self.tool_name: (*untyped) -> untyped
     def self.description: (*untyped) -> untyped
     def self.input_schema: (*untyped, **untyped) -> untyped
+    def self.annotations: (*untyped, **untyped) -> untyped
 
     class Response
       def initialize: (*untyped, **untyped) -> void

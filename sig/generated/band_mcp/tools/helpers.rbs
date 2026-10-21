@@ -1,0 +1,19 @@
+# Generated from lib/band_mcp/tools/helpers.rb with RBS::Inline
+
+module BandMCP
+  module Tools
+    # Shared plumbing for tools that call BAND. Tool classes `extend` this so their `self.call` stays a one-liner and
+    # every failure reaches the model as a tool error rather than crashing the server.
+    module Helpers
+      # Yields a client and turns BandMCP::Error into an MCP error response.
+      # : () { (Client) -> untyped } -> untyped
+      def with_client: () { (Client) -> untyped } -> untyped
+
+      # : (untyped data) -> untyped
+      def json_response: (untyped data) -> untyped
+
+      # : (String text, ?error: bool) -> untyped
+      def text_response: (String text, ?error: bool) -> untyped
+    end
+  end
+end

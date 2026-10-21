@@ -8,8 +8,8 @@ RSpec.describe BandMCP do
       expect(server).to be_a(MCP::Server)
     end
 
-    it "registers the ping tool" do
-      expect(server.tools.keys).to contain_exactly("ping")
+    it "registers every tool" do
+      expect(server.tools.keys).to contain_exactly("ping", "list_bands")
     end
   end
 end
