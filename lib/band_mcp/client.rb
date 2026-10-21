@@ -1,0 +1,83 @@
+# frozen_string_literal: true
+
+# rbs_inline: enabled
+
+require "json"
+require "net/http"
+require "uri"
+
+require_relative "config"
+require_relative "error"
+
+module BandMCP
+  # Minimal BAND Open API client. Callers pass the full versioned path (`/v2.1/bands`) because BAND versions each
+  # endpoint separately. Both verbs return the response's `result_data` and raise BandMCP::Error on any failure.
+  class Client
+    BASE_URL = "https://openapi.band.us" #: String
+    SUCCESS_CODE = 1 #: Integer
+    NETWORK_ERRORS = [SocketError, SystemCallError, Timeout::Error, OpenSSL::SSL::SSLError].freeze #: Array[Class]
+
+    # @rbs @access_token: String
+
+    #: (?access_token: String?) -> void
+    def initialize(access_token: Config.access_token)
+      raise Error, "BAND_ACCESS_TOKEN is not set" if access_token.nil?
+
+      @access_token = access_token
+    end
+
+    #: (String path, ?Hash[String, untyped] params) -> Hash[String, untyped]
+    def get(path, params = {})
+      uri = URI("#{BASE_URL}#{path}")
+      uri.query = URI.encode_www_form(params) unless params.empty?
+      perform(uri, Net::HTTP::Get.new(uri))
+    end
+
+    #: (String path, ?Hash[String, untyped] params) -> Hash[String, untyped]
+    def post(path, params = {})
+      uri = URI("#{BASE_URL}#{path}")
+      request = Net::HTTP::Post.new(uri)
+      request.set_form_data(params)
+      perform(uri, request)
+    end
+
+    private
+
+    #: (URI::Generic uri, Net::HTTPRequest request) -> Hash[String, untyped]
+    def perform(uri, request)
+      request["Authorization"] = "Bearer #{@access_token}"
+      response = Net::HTTP.start(uri.hostname.to_s, uri.port, use_ssl: true) { |http| http.request(request) }
+      parse(response)
+    rescue *NETWORK_ERRORS => e
+      # Only the exception class: the message can echo the request URL, which must stay free of credentials.
+      raise Error, "BAND request failed (#{e.class})"
+    end
+
+    # BAND reports failures as JSON with a non-1 result_code, often alongside a 4xx status, so the body is parsed
+    # before the HTTP status is consulted.
+    #: (Net::HTTPResponse response) -> Hash[String, untyped]
+    def parse(response)
+      body = JSON.parse(response.body.to_s)
+      raise Error, "BAND returned an unexpected response (HTTP #{response.code})" unless body.is_a?(Hash)
+
+      code = body["result_code"]
+      data = body["result_data"]
+      data = empty_data unless data.is_a?(Hash)
+      return data if code == SUCCESS_CODE
+
+      raise APIError.new(code.is_a?(Integer) ? code : nil, error_message(data))
+    rescue JSON::ParserError
+      raise Error, "BAND returned a non-JSON response (HTTP #{response.code})"
+    end
+
+    #: () -> Hash[String, untyped]
+    def empty_data
+      {}
+    end
+
+    #: (Hash[String, untyped] data) -> String
+    def error_message(data)
+      [data["message"], data["detail"]].compact.join(": ").then { |text| text.empty? ? "unknown error" : text }
+    end
+  end
+end

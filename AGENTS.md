@@ -53,7 +53,9 @@ CI checks; `rake -T` lists the individual tasks.
 ## BAND API notes
 
 - Base URL: `https://openapi.band.us`.
-- Authentication is a bearer token: send `Authorization: Bearer <access_token>` on every request.
+- Authentication is a bearer token: send `Authorization: Bearer <access_token>` on every request. BAND's published
+  docs list `access_token` as a request parameter instead, but the header was verified against the live API and keeps
+  the token out of URLs.
 - Version prefixes differ per endpoint (`/v2/…`, `/v2.1/…`, `/v2.2/…`), so the client must carry a version per
   endpoint rather than one global prefix.
 - Paged responses return `next_params`, which is passed back to fetch the next page.
@@ -68,5 +70,9 @@ CI checks; `rake -T` lists the individual tasks.
   `BandMCP::TOOLS`.
 - `lib/band_mcp/config.rb` owns environment access (`.env` loading, `BAND_ACCESS_TOKEN`). Existing ENV values win over
   `.env`.
+- `lib/band_mcp/client.rb` is the BAND HTTP client (`Net::HTTP`). `get`/`post` take the full versioned path, return
+  `result_data`, and raise `BandMCP::Error` (`lib/band_mcp/error.rb`; `APIError` when BAND reports a failing
+  `result_code`). Error messages must never contain the token or the request URL.
+- Specs stub HTTP with WebMock, which also fails any unstubbed request, so specs never reach the network.
 - `lib/band_mcp/tools/` holds one `MCP::Tool` subclass per tool. To add a tool, create the class there and append it
   to `BandMCP::TOOLS`.

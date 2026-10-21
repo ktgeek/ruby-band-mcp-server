@@ -6,6 +6,8 @@ require "mcp"
 
 require_relative "band_mcp/version"
 require_relative "band_mcp/config"
+require_relative "band_mcp/error"
+require_relative "band_mcp/client"
 require_relative "band_mcp/tools/ping"
 
 module BandMCP

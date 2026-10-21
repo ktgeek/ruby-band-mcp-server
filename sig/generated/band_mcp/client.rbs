@@ -1,0 +1,40 @@
+# Generated from lib/band_mcp/client.rb with RBS::Inline
+
+module BandMCP
+  # Minimal BAND Open API client. Callers pass the full versioned path (`/v2.1/bands`) because BAND versions each
+  # endpoint separately. Both verbs return the response's `result_data` and raise BandMCP::Error on any failure.
+  class Client
+    BASE_URL: String
+
+    SUCCESS_CODE: Integer
+
+    NETWORK_ERRORS: Array[Class]
+
+    @access_token: String
+
+    # : (?access_token: String?) -> void
+    def initialize: (?access_token: String?) -> void
+
+    # : (String path, ?Hash[String, untyped] params) -> Hash[String, untyped]
+    def get: (String path, ?Hash[String, untyped] params) -> Hash[String, untyped]
+
+    # : (String path, ?Hash[String, untyped] params) -> Hash[String, untyped]
+    def post: (String path, ?Hash[String, untyped] params) -> Hash[String, untyped]
+
+    private
+
+    # : (URI::Generic uri, Net::HTTPRequest request) -> Hash[String, untyped]
+    def perform: (URI::Generic uri, Net::HTTPRequest request) -> Hash[String, untyped]
+
+    # BAND reports failures as JSON with a non-1 result_code, often alongside a 4xx status, so the body is parsed
+    # before the HTTP status is consulted.
+    # : (Net::HTTPResponse response) -> Hash[String, untyped]
+    def parse: (Net::HTTPResponse response) -> Hash[String, untyped]
+
+    # : () -> Hash[String, untyped]
+    def empty_data: () -> Hash[String, untyped]
+
+    # : (Hash[String, untyped] data) -> String
+    def error_message: (Hash[String, untyped] data) -> String
+  end
+end
