@@ -1,0 +1,19 @@
+# Generated from lib/band_mcp/tools/list_posts.rb with RBS::Inline
+
+module BandMCP
+  module Tools
+    class ListPosts < MCP::Tool
+      extend Helpers
+
+      DEFAULT_LOCALE: String
+
+      # : (band_key: String, ?after: String?, ?locale: String, **untyped) -> untyped
+      def self.call: (band_key: String, ?after: String?, ?locale: String, **untyped) -> untyped
+
+      # BAND's next_params also carries the access token, so only the cursor is passed on. Nothing else from it may
+      # reach the model.
+      # : (Hash[String, untyped] data) -> String?
+      def self.next_after: (Hash[String, untyped] data) -> String?
+    end
+  end
+end
