@@ -32,6 +32,12 @@ RSpec.describe BandMCP::Tools::ListBands do
     expect(JSON.parse(call.content.first[:text])).to eq([])
   end
 
+  it "returns an empty list when BAND sends bands: null" do
+    stub_request(:get, bands_url).to_return(body: { result_code: 1, result_data: { bands: nil } }.to_json)
+
+    expect(JSON.parse(call.content.first[:text])).to eq([])
+  end
+
   it "reports a BAND failure as a tool error" do
     stub_request(:get, bands_url).to_return(status: 401, body: { result_code: 10_401 }.to_json)
 

@@ -44,8 +44,10 @@ module BandMCP
       #: (Hash[String, untyped] post) -> Hash[String, untyped]
       def self.summarize(post)
         summary = post.slice(*PASSTHROUGH_FIELDS)
-        summary["author"] = post.dig("author", "name")
-        summary["created_at"] = Time.at(post["created_at"] / 1000, in: "UTC").iso8601 if post["created_at"]
+        author = post["author"]
+        summary["author"] = author["name"] if author.is_a?(Hash)
+        created_at = post["created_at"]
+        summary["created_at"] = Time.at(created_at / 1000, in: "UTC").iso8601 if created_at.is_a?(Integer)
         summary
       end
     end

@@ -50,6 +50,22 @@ RSpec.describe BandMCP::Tools::CreatePost do
     expect(stub).to have_been_requested
   end
 
+  it "warns that the post may exist after a network failure" do
+    stub_request(:post, create_url).to_timeout
+
+    expect(call.content.first[:text]).to include("may still have been published")
+  end
+
+  it "does not claim the post may exist when BAND rejects it" do
+    stub_request(:post, create_url).to_return(status: 403, body: { result_code: 60_400 }.to_json)
+
+    expect(call.content.first[:text]).not_to include("may still have been published")
+  end
+
+  it "rejects blank content in the input schema" do
+    expect(described_class.input_schema_value.to_h.dig(:properties, :content, :pattern)).to eq("\\S")
+  end
+
   it "reports a missing write permission as a tool error" do
     stub_request(:post, create_url).to_return(
       status: 403, body: { result_code: 60_400, result_data: { message: "No write permission" } }.to_json
