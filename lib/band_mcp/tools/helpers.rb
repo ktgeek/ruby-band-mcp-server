@@ -33,6 +33,13 @@ module BandMCP
         MCP::Tool::Response.new([{ type: "text", text: text }], error: error)
       end
 
+      # For a response whose shape BAND changed. Reporting it as an error keeps it from reading as an empty or
+      # all-denied answer.
+      #: (String what) -> untyped
+      def unexpected_format(what)
+        text_response("BAND returned #{what} in an unexpected format", error: true)
+      end
+
       # Drops the photo/video payloads and author profile details, and turns BAND's epoch milliseconds into ISO 8601
       # so the model doesn't have to. Anything missing or oddly shaped is omitted rather than raised on.
       #: (Hash[String, untyped] post) -> Hash[String, untyped]

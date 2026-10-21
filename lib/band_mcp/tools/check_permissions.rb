@@ -38,7 +38,7 @@ module BandMCP
           if granted
             json_response({ "granted" => permissions & granted, "denied" => permissions - granted })
           else
-            text_response("BAND returned permissions in an unexpected format", error: true)
+            unexpected_format("permissions")
           end
         end
       end
