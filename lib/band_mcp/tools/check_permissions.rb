@@ -45,10 +45,11 @@ module BandMCP
 
       # BAND's docs name the result key `permissions` in the field table but `permission` in the example, so both are
       # accepted. Returns nil when neither holds a list, so a changed format isn't reported as everything denied.
+      # Entries that aren't strings can't match a requested permission and are dropped.
       #: (Hash[String, untyped] data) -> Array[String]?
       def self.granted_permissions(data)
         granted = data["permissions"] || data["permission"]
-        granted if granted.is_a?(Array)
+        granted.grep(String) if granted.is_a?(Array)
       end
     end
   end

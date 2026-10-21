@@ -64,6 +64,14 @@ RSpec.describe BandMCP::Tools::CheckPermissions do
     end
   end
 
+  context "when the permission list holds entries that are not strings" do
+    let(:result_data) { { permissions: ["posting", { name: "commenting" }, 7] } }
+
+    it "ignores them" do
+      expect(result).to eq("granted" => %w[posting], "denied" => %w[commenting contents_deletion])
+    end
+  end
+
   context "when the permission list is not an array" do
     let(:result_data) { { permissions: "posting" } }
 
