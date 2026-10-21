@@ -34,10 +34,8 @@ module BandMCP
           )
           json_response(data.slice("band_key", "post_key"))
         rescue NetworkError => e
-          # Unlike BAND rejecting the post, a dropped connection says nothing about whether it was published, and a
-          # blind retry would duplicate it for every member.
-          text_response("#{e.message}. The post may still have been published; check the band before retrying.",
-                        error: true)
+          # A blind retry would duplicate the post for every member.
+          uncertain_outcome(e, "The post may still have been published; check the band before retrying.")
         end
       end
     end
