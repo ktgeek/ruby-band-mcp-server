@@ -15,6 +15,7 @@ written in Ruby on the official [`mcp` gem](https://github.com/modelcontextproto
 | `check_permissions` | Reports which of `posting`, `commenting` and `contents_deletion` the user has in a band.       |
 | `remove_post`       | Permanently deletes a post by `band_key` and `post_key`. It cannot be undone.                  |
 | `list_comments`     | Lists a post's comments, oldest first unless `newest_first`, paged with `after`.               |
+| `create_comment`    | Adds a comment to a post. BAND does not return its key; find it with `list_comments`.          |
 
 A typical flow is `list_bands` to find the band, `create_post` to publish, then `get_post` with the returned
 `post_key` to confirm. `create_post` is marked as not read-only, so MCP clients such as Claude Desktop can ask before
@@ -26,6 +27,9 @@ To browse what is already in a band, use `list_posts`. BAND picks the page size 
 To read the discussion on a post, use `list_comments` with the post's `band_key` and `post_key`. Comments come oldest
 first; set `newest_first` to reverse that. Paging works as with `list_posts`; pass the same `newest_first` along with
 `after`.
+
+To join in, use `create_comment`. BAND confirms the comment without saying what its key is, so call `list_comments`
+afterwards to confirm it landed and to get its `comment_key`.
 
 To take a post down, use `remove_post`; it is marked destructive, so clients can ask before running it. Run
 `check_permissions` with `contents_deletion` first. BAND's docs say that permission does not check authorship, so
@@ -119,9 +123,10 @@ stream and Desktop could not parse the handshake.
 
 Then ask Claude to run `ping`, which reports whether the token is set without showing it, and try "Which bands am I
 in?" to confirm the connection. Desktop asks before it runs a tool unless you have set that tool to always allow.
-Keep the prompt on for `create_post`: it publishes to every member of the band. Read the band and the wording in the
-request before approving. Members are push-notified only if the request sets `do_push`. Keep it on for `remove_post`
-too: the post is deleted for every member and cannot be restored, so check the `post_key` before approving.
+Keep the prompt on for `create_post` and `create_comment`: they publish to every member of the band. Read the band and
+the wording in the request before approving. For `create_post`, members are push-notified only if the request sets
+`do_push`. Keep the prompt on for `remove_post` too: the post is deleted for every member and cannot be restored, so
+check the `post_key` before approving.
 
 To check the launch command outside Desktop, run it with a bare environment. A JSON `initialize` response means the
 server starts under that Ruby with its gems; it does not check the token, which `ping` does:
