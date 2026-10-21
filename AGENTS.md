@@ -59,6 +59,8 @@ CI checks; `rake -T` lists the individual tasks.
 - Version prefixes differ per endpoint (`/v2/…`, `/v2.1/…`, `/v2.2/…`), so the client must carry a version per
   endpoint rather than one global prefix.
 - Paged responses return `next_params`, which is passed back to fetch the next page.
+- Live behavior differs from BAND's docs in several places; `API_DISCREPANCIES.md` lists them. Check it before
+  trusting a documented parameter, and add to it when you find another difference.
 - The token is issued for an app registered at `https://developers.band.us`. This server only consumes it and runs no
   OAuth flow.
 
