@@ -77,6 +77,8 @@ CI checks; `rake -T` lists the individual tasks.
   `result_code`; `UncertainResponseError`, a `NetworkError`, for a 5xx whose body isn't BAND's own JSON). Error
   messages must never contain the token or the request URL.
 - Specs stub HTTP with WebMock, which also fails any unstubbed request, so specs never reach the network.
+  `spec/support/` is loaded by `spec_helper.rb`; a write tool's spec includes its shared example
+  `"a write with an uncertain outcome"` rather than restating the retry-advice cases.
 - `lib/band_mcp/tools/` holds one `MCP::Tool` subclass per tool. To add a tool, create the class there and append it
   to `BandMCP::TOOLS`. BAND-backed tools `extend BandMCP::Tools::Helpers` (`lib/band_mcp/tools/helpers.rb`): wrap the
   work in `with_client { |client| … }` so a `BandMCP::Error` becomes an MCP error response, and answer with

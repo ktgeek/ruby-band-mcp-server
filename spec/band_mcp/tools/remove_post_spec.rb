@@ -35,28 +35,9 @@ RSpec.describe BandMCP::Tools::RemovePost do
     expect(JSON.parse(call.content.first[:text])).to eq("band_key" => "b1", "post_key" => "p1", "removed" => true)
   end
 
-  it "warns that the post may be gone after a network failure" do
-    stub_request(:post, remove_url).to_timeout
-
-    expect(call.content.first[:text]).to include("may already have been removed")
-  end
-
-  it "does not claim the post may be gone when BAND rejects the request" do
-    stub_request(:post, remove_url).to_return(status: 403, body: { result_code: 60_400 }.to_json)
-
-    expect(call.content.first[:text]).not_to include("may already have been removed")
-  end
-
-  it "warns that the post may be gone after a 502 with an HTML body" do
-    stub_request(:post, remove_url).to_return(status: 502, body: "<html>bad gateway</html>")
-
-    expect(call.content.first[:text]).to include("may already have been removed")
-  end
-
-  it "does not claim the post may be gone after a 4xx with an HTML body" do
-    stub_request(:post, remove_url).to_return(status: 404, body: "<html>not found</html>")
-
-    expect(call.content.first[:text]).not_to include("may already have been removed")
+  it_behaves_like "a write with an uncertain outcome" do
+    let(:write_url) { remove_url }
+    let(:uncertain_text) { "may already have been removed" }
   end
 
   it "reports a missing delete permission as a tool error" do
