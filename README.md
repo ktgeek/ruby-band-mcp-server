@@ -26,8 +26,8 @@ To browse what is already in a band, use `list_posts`. BAND picks the page size 
 `next_after` is not null, pass it back as `after` to get the next page.
 
 To read the discussion on a post, use `list_comments` with the post's `band_key` and `post_key`. Comments come oldest
-first; set `newest_first` to reverse that. Paging works as with `list_posts`; pass the same `newest_first` along with
-`after`.
+first; set `newest_first` to reverse that. BAND chose a page size of 20 when tested. Pass `next_after` back as `after` exactly as
+returned: it remembers the order, so a page after the first needs no `newest_first`.
 
 To join in, use `create_comment`. BAND confirms the comment without saying what its key is, so call `list_comments`
 afterwards to confirm it landed and to get its `comment_key`.

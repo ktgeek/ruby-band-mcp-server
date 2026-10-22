@@ -7,8 +7,20 @@ module BandMCP
 
       NEWEST_FIRST_SORT: String
 
+      # BAND's cursor only works with the sort it came from; paired with the wrong one it silently skips and repeats
+      # comments. So next_after carries the order as a tag, and a cursor without one is refused.
+      ORDER_TAGS: Hash[bool, String]
+
+      TAGGED_CURSOR: Regexp
+
+      BAD_CURSOR: String
+
       # : (band_key: String, post_key: String, ?after: String?, ?newest_first: bool, **untyped) -> untyped
       def self.call: (band_key: String, post_key: String, ?after: String?, ?newest_first: bool, **untyped) -> untyped
+
+      # The order and BAND's cursor out of a next_after value, or nil for the cursor when it isn't one of ours.
+      # : (String after) -> [bool, String?]
+      def self.parse_cursor: (String after) -> [ bool, String? ]
     end
   end
 end

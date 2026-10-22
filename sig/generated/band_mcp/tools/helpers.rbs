@@ -38,8 +38,9 @@ module BandMCP
       # Answers a BAND page of items as `{key => [...], "next_after" => cursor}`, yielding each item to summarize it.
       # A missing list means an empty page, but a list that isn't an array means BAND changed shape; saying "none"
       # there would mislead the model.
-      # : (Hash[String, untyped] data, String key) { (Hash[String, untyped]) -> untyped } -> untyped
-      def paged_response: (Hash[String, untyped] data, String key) { (Hash[String, untyped]) -> untyped } -> untyped
+      # `prefix` is put in front of the cursor for tools that encode more than BAND's cursor in it.
+      # : (Hash[String, untyped] data, String key, ?prefix: String) { (Hash[String, untyped]) -> untyped } -> untyped
+      def paged_response: (Hash[String, untyped] data, String key, ?prefix: String) { (Hash[String, untyped]) -> untyped } -> untyped
 
       # BAND's next_params also carries the access token, so only the cursor is passed on. Nothing else from it may
       # reach the model.

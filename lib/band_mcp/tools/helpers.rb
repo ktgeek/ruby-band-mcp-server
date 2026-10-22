@@ -65,12 +65,15 @@ module BandMCP
       # Answers a BAND page of items as `{key => [...], "next_after" => cursor}`, yielding each item to summarize it.
       # A missing list means an empty page, but a list that isn't an array means BAND changed shape; saying "none"
       # there would mislead the model.
-      #: (Hash[String, untyped] data, String key) { (Hash[String, untyped]) -> untyped } -> untyped
-      def paged_response(data, key, &)
+      # `prefix` is put in front of the cursor for tools that encode more than BAND's cursor in it.
+      #: (Hash[String, untyped] data, String key, ?prefix: String) { (Hash[String, untyped]) -> untyped } -> untyped
+      def paged_response(data, key, prefix: "", &)
         items = data["items"]
         return unexpected_format(key) unless items.nil? || items.is_a?(Array)
 
-        json_response({ key => Array(items).grep(Hash).map(&), "next_after" => next_after(data) })
+        cursor = next_after(data)
+        json_response({ key => Array(items).grep(Hash).map(&),
+                        "next_after" => cursor && "#{prefix}#{cursor}" })
       end
 
       # BAND's next_params also carries the access token, so only the cursor is passed on. Nothing else from it may
@@ -80,7 +83,7 @@ module BandMCP
         paging = data["paging"]
         next_params = paging["next_params"] if paging.is_a?(Hash)
         after = next_params["after"] if next_params.is_a?(Hash)
-        after if after.is_a?(String)
+        after if after.is_a?(String) && !after.empty?
       end
 
       # Keeps the listed fields and drops the photo/video payloads and author profile details, and turns BAND's epoch
