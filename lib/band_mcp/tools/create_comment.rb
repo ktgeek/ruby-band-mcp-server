@@ -18,7 +18,9 @@ module BandMCP
       description "Add a comment to a post in a BAND as the user. Visible to the band's members, so confirm the " \
                   "post and wording with the user first. BAND does not return the new comment's key; call " \
                   "list_comments to find it. Check the commenting permission with check_permissions if unsure. " \
-                  "Find band_key with list_bands and post_key with list_posts."
+                  "Find band_key with list_bands and post_key with list_posts. BAND can answer 'Cool down time " \
+                  "restriction' (1003) when comments come in quick succession; leave about ten seconds between " \
+                  "comments, or wait that long and retry."
       input_schema(
         properties: {
           band_key: { type: "string", minLength: 1, description: "Band the post belongs to, from list_bands." },

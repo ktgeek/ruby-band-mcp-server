@@ -67,13 +67,16 @@ When you find another difference, add it here in the same commit as the code tha
 
 - **Live**: some writes are refused with `result_code` 1003, "Cool down time restriction":
   - `remove_post` a few seconds after `create_post`;
-  - `remove_comment` immediately after another `remove_comment`.
+  - `remove_comment` immediately after another `remove_comment`;
+  - `create_comment` two seconds after another `create_comment`. All 45 comments of a bulk run were refused once
+    this way, and each went through after a 30-second wait.
 
-  The `remove_post` retry worked about 90 seconds later; the `remove_comment` repeat was not retried. A 20-second gap
-  was enough between `create_post` and `create_comment`, and between `create_comment` and `remove_comment`. The exact
-  window, and which pairs of writes trigger it, are unknown.
-- **We do**: say so in the `remove_post` and `remove_comment` descriptions, so a model waits and retries instead of
-  giving up. (#7, #11)
+  The `remove_post` retry worked about 90 seconds later; the `remove_comment` repeat was not retried. A 10-second gap
+  between `create_comment` calls was enough: 23 in a row were never refused. A 20-second gap was enough between
+  `create_post` and `create_comment`, and between `create_comment` and `remove_comment`. So for repeated
+  `create_comment` calls the window is between 2 and 10 seconds; for other pairs of writes it is unknown.
+- **We do**: say so in the `remove_post`, `remove_comment` and `create_comment` descriptions, so a model waits and
+  retries instead of giving up. (#7, #11, and the live paging runs)
 
 ### A deleted post is an error, not an empty result
 
