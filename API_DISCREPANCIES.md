@@ -41,8 +41,17 @@ When you find another difference, add it here in the same commit as the code tha
 
 - **Docs**: the paging example on the "Get Comments" page calls `https://openapi.band.us/v2/band/posts?...`. This is
   a copy-paste slip in the docs, not something we saw the API do.
-- **We do**: page `/v2/band/post/comments` with the same cursor shape as posts. Paging past the first page of
-  comments has not been tried live (see "Not verified").
+- **Live**: `/v2/band/post/comments` pages with the same cursor shape as posts, 20 comments a page when tested. A post with 45
+  comments came back as pages of 20, 20 and 5 in both orders, with no duplicates or gaps.
+- **We do**: page that endpoint. (#9, and the paging runs of 2026-10-21 on Keith's Test Band: 45 comments, then 23 through the final tool)
+
+### A comment cursor only works with the sort it came from
+
+- **Docs**: say nothing about it. `next_params` carries the cursor, and everything needed to repeat the request.
+- **Live**: a cursor from a `-created_at` listing, followed without the sort, returned 19 comments in ascending order
+  starting partway through the post. That skips comments and repeats others, with no error.
+- **We do**: `list_comments` puts the order into the `next_after` it returns (`oldest:<cursor>` or `newest:<cursor>`)
+  and takes the order from `after`, so it cannot be mismatched. A bare cursor is refused.
 
 ### The permissions response shows two key names
 
@@ -99,8 +108,6 @@ When you find another difference, add it here in the same commit as the code tha
 
 These come from the docs only. Do not rely on them without trying.
 
-- **Paging comments**: no post we could read had more than one page of comments, so `after`, and whether the cursor
-  depends on the sort order, is covered by specs only. (#9)
 - **Permissions when none are granted**: we only saw bands where everything is granted. If BAND omits the list in that
   case, `check_permissions` reports an error. (#6)
 - **Authorship**: the docs say `contents_deletion` does not check who wrote a post or comment, and that

@@ -44,8 +44,8 @@ RSpec.describe BandMCP::Tools::ListComments do
     )
   end
 
-  it "returns the next_after cursor" do
-    expect(result["next_after"]).to eq("cursor2")
+  it "returns BAND's cursor tagged with the order, so it can only be followed that way" do
+    expect(result["next_after"]).to eq("oldest:cursor2")
   end
 
   it "never exposes the access token from next_params" do
@@ -68,11 +68,68 @@ RSpec.describe BandMCP::Tools::ListComments do
     end
   end
 
-  it "sends after when given" do
+  it "sends BAND's cursor, without a sort, for an oldest-first cursor" do
     stub = stub_comments(query: { band_key: "b1", post_key: "p1", after: "cursor1" })
-    call(after: "cursor1")
+    call(after: "oldest:cursor1")
 
     expect(stub).to have_been_requested
+  end
+
+  it "sends BAND's cursor with the descending sort for a newest-first cursor" do
+    stub = stub_comments(query: { band_key: "b1", post_key: "p1", after: "cursor1", sort: "-created_at" })
+    call(after: "newest:cursor1")
+
+    expect(stub).to have_been_requested
+  end
+
+  it "takes the order from the cursor when newest_first disagrees" do
+    stub = stub_comments(query: { band_key: "b1", post_key: "p1", after: "cursor1", sort: "-created_at" })
+    call(after: "newest:cursor1", newest_first: false)
+
+    expect(stub).to have_been_requested
+  end
+
+  it "keeps a colon inside BAND's cursor intact" do
+    stub = stub_comments(query: { band_key: "b1", post_key: "p1", after: "a:b" })
+    call(after: "oldest:a:b")
+
+    expect(stub).to have_been_requested
+  end
+
+  it "tags the next cursor as newest when newest_first is true" do
+    stub_comments(query: { band_key: "b1", post_key: "p1", sort: "-created_at" })
+
+    expect(JSON.parse(call(newest_first: true).content.first[:text])["next_after"]).to eq("newest:cursor2")
+  end
+
+  it "keeps the order of the cursor on the pages after it" do
+    stub_comments(query: { band_key: "b1", post_key: "p1", after: "cursor1", sort: "-created_at" })
+    page = JSON.parse(call(after: "newest:cursor1").content.first[:text])
+
+    expect(page["next_after"]).to eq("newest:cursor2")
+  end
+
+  context "when BAND's cursor is empty" do
+    let(:next_params) { { after: "", limit: "20" } }
+
+    it "ends the listing instead of advertising an unusable cursor" do
+      expect(result["next_after"]).to be_nil
+    end
+  end
+
+  it "tells the model how to recover from a refused after value" do
+    expect(call(after: "cursor1").content.first[:text]).to include("unchanged", "oldest:", "first page")
+  end
+
+  it "refuses an after value that is not a next_after from this tool" do
+    expect([call(after: "cursor1"), call(after: "oldest:")]).to all(be_error)
+  end
+
+  it "does not call BAND for an after value it refuses" do
+    stub = stub_comments(query: hash_including({}))
+    call(after: "cursor1")
+
+    expect(stub).not_to have_been_requested
   end
 
   it "asks BAND for the newest comments first when newest_first is true" do
