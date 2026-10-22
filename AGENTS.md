@@ -74,12 +74,14 @@ CI checks; `rake -T` lists the individual tasks.
   `.env`.
 - `lib/band_mcp/client.rb` is the BAND HTTP client (`Net::HTTP`). `get`/`post` take the full versioned path, return
   `result_data`, and raise `BandMCP::Error` (`lib/band_mcp/error.rb`; `APIError` when BAND reports a failing
-  `result_code`). Error messages must never contain the token or the request URL.
+  `result_code`; `UncertainResponseError`, a `NetworkError`, for a 5xx whose body isn't BAND's own JSON). Error
+  messages must never contain the token or the request URL.
 - Specs stub HTTP with WebMock, which also fails any unstubbed request, so specs never reach the network.
 - `lib/band_mcp/tools/` holds one `MCP::Tool` subclass per tool. To add a tool, create the class there and append it
   to `BandMCP::TOOLS`. BAND-backed tools `extend BandMCP::Tools::Helpers` (`lib/band_mcp/tools/helpers.rb`): wrap the
   work in `with_client { |client| … }` so a `BandMCP::Error` becomes an MCP error response, and answer with
   `json_response`. Answer a response of the wrong shape with `unexpected_format`. A write tool uses
-  `with_write_client(advice)` instead, because a dropped connection doesn't say whether the write happened; `advice`
-  tells the model how to check before retrying. A paged list answers with `paged_response`, which passes on only the
-  cursor because BAND's `next_params` carries the access token.
+  `with_write_client(advice)` instead, because a dropped connection, or a 5xx whose body isn't BAND's own JSON
+  (`UncertainResponseError`), doesn't say whether the write happened; `advice` tells the model how to check before
+  retrying. A paged list answers with `paged_response`, which passes on only the cursor because BAND's `next_params`
+  carries the access token.

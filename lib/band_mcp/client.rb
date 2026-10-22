@@ -67,12 +67,13 @@ module BandMCP
     end
 
     # BAND reports failures as JSON with a non-1 result_code, often alongside a 4xx status, so the body is parsed
-    # before the HTTP status is consulted.
+    # before the HTTP status is consulted. A body that isn't BAND's answer is a plain error for a 4xx (a rejection) but
+    # an uncertain outcome for a 5xx.
     #: (Net::HTTPResponse response) -> Hash[String, untyped]
     def parse(response)
       body = JSON.parse(response.body.to_s)
       code = body["result_code"] if body.is_a?(Hash)
-      raise Error, "BAND returned an unexpected response (HTTP #{response.code})" unless code.is_a?(Integer)
+      raise unreadable_response(response, "an unexpected response") unless code.is_a?(Integer)
 
       data = body["result_data"]
       data = empty_data unless data.is_a?(Hash)
@@ -80,7 +81,13 @@ module BandMCP
 
       raise APIError.new(code, error_message(data))
     rescue JSON::ParserError
-      raise Error, "BAND returned a non-JSON response (HTTP #{response.code})"
+      raise unreadable_response(response, "a non-JSON response")
+    end
+
+    #: (Net::HTTPResponse response, String what) -> Error
+    def unreadable_response(response, what)
+      error_class = response.code.to_i >= 500 ? UncertainResponseError : Error
+      error_class.new("BAND returned #{what} (HTTP #{response.code})")
     end
 
     #: () -> Hash[String, untyped]

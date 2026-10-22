@@ -11,9 +11,9 @@ RSpec.describe BandMCP::Client do
     { result_code: result_code, result_data: result_data }.to_json
   end
 
-  def api_error_for(path = "/v2.1/bands")
+  def error_for(path = "/v2.1/bands")
     client.get(path)
-  rescue BandMCP::APIError => e
+  rescue BandMCP::Error => e
     e
   end
 
@@ -73,19 +73,38 @@ RSpec.describe BandMCP::Client do
     it "raises an APIError carrying BAND's message and detail" do
       stub_request(:get, bands_url).to_return(status: 403, body: failure)
 
-      expect(api_error_for.message).to eq("BAND API error 60400: No write permission: posting")
+      expect(error_for.message).to eq("BAND API error 60400: No write permission: posting")
     end
 
     it "exposes the BAND result code" do
       stub_request(:get, bands_url).to_return(status: 403, body: failure)
 
-      expect(api_error_for.code).to eq(60_400)
+      expect(error_for.code).to eq(60_400)
     end
 
-    it "raises on a non-JSON response" do
+    it "raises an UncertainResponseError on a non-JSON 5xx" do
       stub_request(:get, bands_url).to_return(status: 502, body: "<html>bad gateway</html>")
 
-      expect { client.get("/v2.1/bands") }.to raise_error(BandMCP::Error, /non-JSON response \(HTTP 502\)/)
+      expect { client.get("/v2.1/bands") }
+        .to raise_error(BandMCP::UncertainResponseError, /non-JSON response \(HTTP 502\)/)
+    end
+
+    it "raises a plain Error on a non-JSON 4xx" do
+      stub_request(:get, bands_url).to_return(status: 404, body: "<html>not found</html>")
+
+      expect(error_for).to have_attributes(class: BandMCP::Error, message: /non-JSON response \(HTTP 404\)/)
+    end
+
+    it "keeps an APIError when a 5xx carries BAND's own failure code" do
+      stub_request(:get, bands_url).to_return(status: 500, body: json_body(result_code: 60_000))
+
+      expect(error_for).to be_a(BandMCP::APIError)
+    end
+
+    it "keeps the token and URL out of an uncertain-response message" do
+      stub_request(:get, bands_url).to_return(status: 504, body: "<html>timeout</html>")
+
+      expect(error_for.message).not_to include(token, "openapi.band.us")
     end
 
     it "raises when the JSON is not an object" do
@@ -116,13 +135,14 @@ RSpec.describe BandMCP::Client do
     it "raises when the body has no result_code" do
       stub_request(:get, bands_url).to_return(status: 500, body: { error: "boom" }.to_json)
 
-      expect { client.get("/v2.1/bands") }.to raise_error(BandMCP::Error, /unexpected response \(HTTP 500\)/)
+      expect { client.get("/v2.1/bands") }
+        .to raise_error(BandMCP::UncertainResponseError, /unexpected response \(HTTP 500\)/)
     end
 
     it "never puts the token in an error message" do
       stub_request(:get, bands_url).to_return(status: 401, body: json_body(result_code: 10_401))
 
-      expect(api_error_for.message).not_to include(token)
+      expect(error_for.message).not_to include(token)
     end
   end
 end

@@ -34,9 +34,13 @@ module BandMCP
     def perform: (URI::Generic uri, Net::HTTPRequest request) -> Hash[String, untyped]
 
     # BAND reports failures as JSON with a non-1 result_code, often alongside a 4xx status, so the body is parsed
-    # before the HTTP status is consulted.
+    # before the HTTP status is consulted. A body that isn't BAND's answer is a plain error for a 4xx (a rejection) but
+    # an uncertain outcome for a 5xx.
     # : (Net::HTTPResponse response) -> Hash[String, untyped]
     def parse: (Net::HTTPResponse response) -> Hash[String, untyped]
+
+    # : (Net::HTTPResponse response, String what) -> Error
+    def unreadable_response: (Net::HTTPResponse response, String what) -> Error
 
     # : () -> Hash[String, untyped]
     def empty_data: () -> Hash[String, untyped]
