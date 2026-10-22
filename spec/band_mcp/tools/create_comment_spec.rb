@@ -40,28 +40,9 @@ RSpec.describe BandMCP::Tools::CreateComment do
     expect(described_class.input_schema_value.to_h.dig(:properties, :content, :pattern)).to eq("\\S")
   end
 
-  it "warns that the comment may exist after a network failure" do
-    stub_request(:post, create_url).to_timeout
-
-    expect(call.content.first[:text]).to include("may still have been added")
-  end
-
-  it "does not claim the comment may exist when BAND rejects it" do
-    stub_request(:post, create_url).to_return(status: 403, body: { result_code: 60_400 }.to_json)
-
-    expect(call.content.first[:text]).not_to include("may still have been added")
-  end
-
-  it "warns that the comment may exist after a 502 with an HTML body" do
-    stub_request(:post, create_url).to_return(status: 502, body: "<html>bad gateway</html>")
-
-    expect(call.content.first[:text]).to include("may still have been added")
-  end
-
-  it "does not claim the comment may exist after a 4xx with an HTML body" do
-    stub_request(:post, create_url).to_return(status: 404, body: "<html>not found</html>")
-
-    expect(call.content.first[:text]).not_to include("may still have been added")
+  it_behaves_like "a write with an uncertain outcome" do
+    let(:write_url) { create_url }
+    let(:uncertain_text) { "may still have been added" }
   end
 
   it "reports a missing comment permission as a tool error" do
