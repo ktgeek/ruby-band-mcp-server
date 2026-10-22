@@ -11,6 +11,10 @@ module BandMCP
   # retried.
   class NetworkError < Error; end
 
+  # A 5xx whose body isn't BAND's own answer (an HTML error page, say). A gateway in front of BAND can forward a write
+  # and then fail, so like a dropped connection it says nothing about whether the write happened.
+  class UncertainResponseError < NetworkError; end
+
   # BAND answered, but with a failure `result_code`. See https://developers.band.us/develop/guide/api/handle_errors.
   class APIError < Error
     attr_reader :code #: Integer

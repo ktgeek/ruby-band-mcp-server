@@ -62,6 +62,18 @@ RSpec.describe BandMCP::Tools::CreatePost do
     expect(call.content.first[:text]).not_to include("may still have been published")
   end
 
+  it "warns that the post may exist after a 502 with an HTML body" do
+    stub_request(:post, create_url).to_return(status: 502, body: "<html>bad gateway</html>")
+
+    expect(call.content.first[:text]).to include("may still have been published")
+  end
+
+  it "does not claim the post may exist after a 4xx with an HTML body" do
+    stub_request(:post, create_url).to_return(status: 404, body: "<html>not found</html>")
+
+    expect(call.content.first[:text]).not_to include("may still have been published")
+  end
+
   it "rejects blank content in the input schema" do
     expect(described_class.input_schema_value.to_h.dig(:properties, :content, :pattern)).to eq("\\S")
   end

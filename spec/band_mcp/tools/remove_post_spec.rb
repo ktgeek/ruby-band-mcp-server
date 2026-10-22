@@ -47,6 +47,18 @@ RSpec.describe BandMCP::Tools::RemovePost do
     expect(call.content.first[:text]).not_to include("may already have been removed")
   end
 
+  it "warns that the post may be gone after a 502 with an HTML body" do
+    stub_request(:post, remove_url).to_return(status: 502, body: "<html>bad gateway</html>")
+
+    expect(call.content.first[:text]).to include("may already have been removed")
+  end
+
+  it "does not claim the post may be gone after a 4xx with an HTML body" do
+    stub_request(:post, remove_url).to_return(status: 404, body: "<html>not found</html>")
+
+    expect(call.content.first[:text]).not_to include("may already have been removed")
+  end
+
   it "reports a missing delete permission as a tool error" do
     stub_request(:post, remove_url).to_return(
       status: 403, body: { result_code: 60_400, result_data: { message: "No delete permission" } }.to_json
