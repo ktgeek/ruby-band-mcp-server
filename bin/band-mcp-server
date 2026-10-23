@@ -9,5 +9,4 @@ $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "bundler/setup"
 require "band_mcp"
 
-BandMCP::Config.load_dotenv
-MCP::Server::Transports::StdioTransport.new(BandMCP.build_server).open
+BandMCP.run

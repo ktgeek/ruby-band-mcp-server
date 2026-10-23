@@ -29,4 +29,11 @@ module BandMCP
   def self.build_server
     MCP::Server.new(name: "band-mcp-server", version: VERSION, tools: TOOLS)
   end
+
+  # Entry point shared by the gem's executable and the checkout's launcher.
+  #: () -> untyped
+  def self.run
+    Config.load_dotenv
+    MCP::Server::Transports::StdioTransport.new(build_server).open
+  end
 end
