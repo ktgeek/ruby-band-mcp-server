@@ -46,3 +46,19 @@ jobs:
         with:
           bundler-cache: true
       - run: bundle exec rake audit
+
+  # Builds the gem and runs the installed executable, which catches a file missing from spec.files.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - run: gem build band-mcp-server.gemspec
+      - name: Smoke-test the installed gem
+        run: |
+          export GEM_HOME="$RUNNER_TEMP/gems" GEM_PATH="$RUNNER_TEMP/gems"
+          gem install --no-document ./band-mcp-server-*.gem
+          echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}' |
+            "$GEM_HOME/bin/band-mcp-server" | grep -q '"serverInfo"'
