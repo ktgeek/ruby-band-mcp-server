@@ -12,12 +12,15 @@ RSpec.configure do |config|
   config.mock_with(:rspec) { |mocks| mocks.verify_partial_doubles = true }
   config.shared_context_metadata_behavior = :apply_to_host_groups
   config.disable_monkey_patching!
-  # Specs set and delete the token (directly or via Dotenv), so put the real environment back after each one.
+  # Specs set and delete the token and XDG_CONFIG_HOME (directly or via Dotenv), so put the real environment back
+  # after each one.
   config.around do |example|
     original = ENV.fetch("BAND_ACCESS_TOKEN", nil)
+    original_xdg = ENV.fetch("XDG_CONFIG_HOME", nil)
     example.run
   ensure
     ENV["BAND_ACCESS_TOKEN"] = original
+    ENV["XDG_CONFIG_HOME"] = original_xdg
   end
 
   config.order = :random

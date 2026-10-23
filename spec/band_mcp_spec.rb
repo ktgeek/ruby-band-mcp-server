@@ -1,6 +1,24 @@
 # frozen_string_literal: true
 
 RSpec.describe BandMCP do
+  describe ".run" do
+    let(:transport) { instance_double(MCP::Server::Transports::StdioTransport, open: nil) }
+
+    before do
+      allow(BandMCP::Config).to receive(:load_dotenv)
+      allow(MCP::Server::Transports::StdioTransport).to receive(:new).and_return(transport)
+      described_class.run
+    end
+
+    it "loads the config" do
+      expect(BandMCP::Config).to have_received(:load_dotenv)
+    end
+
+    it "serves the tools over stdio" do
+      expect(transport).to have_received(:open)
+    end
+  end
+
   describe ".build_server" do
     subject(:server) { described_class.build_server }
 
