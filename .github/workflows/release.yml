@@ -1,0 +1,34 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # RubyGems trusted publishing (OIDC); no API key is stored.
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check the tag is on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Check the tag matches the gem version
+        run: |
+          version="$(bundle exec ruby -Ilib -e 'require "band_mcp/version"; puts BandMCP::VERSION')"
+          test "v$version" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME != v$version" >&2; exit 1; }
+      - run: bundle exec rbs collection install
+      - run: bundle exec rake
+      - run: gem build band-mcp-server.gemspec
+      - uses: rubygems/configure-rubygems-credentials@v2.1.0
+      - run: gem push band-mcp-server-*.gem

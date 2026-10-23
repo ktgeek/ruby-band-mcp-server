@@ -32,11 +32,15 @@ CI checks; `rake -T` lists the individual tasks.
 ## Workflow
 
 - `main` is protected. Never commit to it directly: work on a branch, open a PR, and wait for green CI.
-- CI (`.github/workflows/ci.yml`) runs four parallel jobs on every PR: `lint`, `typecheck` (rbs drift + steep), `test`,
-  and `audit`. Dependabot proposes weekly bundler and GitHub Actions updates.
+- CI (`.github/workflows/ci.yml`) runs five parallel jobs on every PR: `lint`, `typecheck` (rbs drift + steep), `test`,
+  `audit`, and `build` (builds the gem and runs the installed executable). Dependabot proposes weekly bundler and
+  GitHub Actions updates.
 - Land each logical change as its own small commit that leaves the tree working.
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): lowercase
   imperative subject of 50 characters (72 at most), body wrapped at 72.
+- Releasing: move the `CHANGELOG.md` entries under a new version heading, bump `BandMCP::VERSION`, run
+  `bundle install` to refresh `Gemfile.lock`, merge, then push a `vX.Y.Z` tag. `.github/workflows/release.yml` checks the tag against `VERSION`, runs `rake`, and pushes the gem to
+  RubyGems through trusted publishing (the `release` environment, no stored API key).
 - Keep this file current: when a change adds a command, task, or architectural piece, document it here in the same
   commit.
 
@@ -66,12 +70,16 @@ CI checks; `rake -T` lists the individual tasks.
 
 ## Architecture
 
-- `bin/band-mcp-server` is a thin launcher: it sets up Bundler and the load path, loads `.env`, and runs the stdio
-  transport. It holds no logic.
+- The project ships as the `band-mcp-server` gem (`band-mcp-server.gemspec`; runtime dependencies live there and the
+  `Gemfile` pulls them in with `gemspec`). `spec.files` is an allowlist, so a new top-level file the gem needs must be
+  added to it.
+- `exe/band-mcp-server` is the gem's executable and `bin/band-mcp-server` the checkout's launcher, which also sets up
+  Bundler and the load path. Both just call `BandMCP.run` and hold no logic.
 - `lib/band_mcp.rb` requires the pieces and exposes `BandMCP.build_server`, which registers every class in
   `BandMCP::TOOLS`.
-- `lib/band_mcp/config.rb` owns environment access (`.env` loading, `BAND_ACCESS_TOKEN`). Existing ENV values win over
-  `.env`.
+- `lib/band_mcp/config.rb` owns environment access (`.env` loading, `BAND_ACCESS_TOKEN`). Priority is existing ENV,
+  then the checkout's `.env`, then `$XDG_CONFIG_HOME/band-mcp-server/config` (default `~/.config/...`), which is where
+  an installed gem finds the token.
 - `lib/band_mcp/client.rb` is the BAND HTTP client (`Net::HTTP`). `get`/`post` take the full versioned path, return
   `result_data`, and raise `BandMCP::Error` (`lib/band_mcp/error.rb`; `APIError` when BAND reports a failing
   `result_code`; `UncertainResponseError`, a `NetworkError`, for a 5xx whose body isn't BAND's own JSON). Error
