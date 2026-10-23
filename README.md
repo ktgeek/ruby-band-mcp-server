@@ -86,8 +86,9 @@ The server speaks MCP over stdio, so it is normally launched by a client rather 
 ### Claude Desktop
 
 Claude Desktop starts servers with a minimal environment, so a version manager such as chruby is not active and
-the installed executable's `#!/usr/bin/env ruby` finds the wrong Ruby (the system Ruby, if any). With chruby, launch the server through
-[`chruby-exec`](https://github.com/postmodern/chruby#chruby-exec), which selects the Ruby and its `GEM_HOME` for you.
+the installed executable's `#!/usr/bin/env ruby` finds the wrong Ruby (the system Ruby, if any). With chruby, launch
+the server through [`chruby-exec`](https://github.com/postmodern/chruby#chruby-exec), which selects the Ruby and its
+`GEM_HOME` for you.
 
 `chruby-exec` does that by running the command in a login shell (`$SHELL -l -c`), so two things must hold. chruby has
 to be loaded by a startup file that a non-interactive login shell reads (for zsh, `~/.zprofile` or `~/.zshenv`, not
