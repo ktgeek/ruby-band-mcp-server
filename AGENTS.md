@@ -37,6 +37,9 @@ CI checks; `rake -T` lists the individual tasks.
 - Land each logical change as its own small commit that leaves the tree working.
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): lowercase
   imperative subject of 50 characters (72 at most), body wrapped at 72.
+- Releasing: move the `CHANGELOG.md` entries under a new version heading, bump `BandMCP::VERSION`, merge, then push a
+  `vX.Y.Z` tag. `.github/workflows/release.yml` checks the tag against `VERSION`, runs `rake`, and pushes the gem to
+  RubyGems through trusted publishing (the `release` environment, no stored API key).
 - Keep this file current: when a change adds a command, task, or architectural piece, document it here in the same
   commit.
 

@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
     "rubygems_mfa_required" => "true"
   }
 
-  spec.files = Dir["lib/**/*.rb"] + %w[exe/band-mcp-server LICENSE README.md API_DISCREPANCIES.md]
+  spec.files = Dir["lib/**/*.rb"] + %w[exe/band-mcp-server LICENSE README.md CHANGELOG.md API_DISCREPANCIES.md]
   spec.bindir = "exe"
   spec.executables = ["band-mcp-server"]
 
