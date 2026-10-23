@@ -4,8 +4,7 @@ source "https://rubygems.org"
 
 ruby ">= 4.0"
 
-gem "dotenv"
-gem "mcp", "~> 1.8"
+gemspec
 
 group :development do
   gem "bundler-audit"

@@ -39,18 +39,19 @@ removing someone else's post can still fail. `remove_comment` works the same way
 
 ## Requirements
 
-Ruby 4.0 or newer (the Gemfile requires `>= 4.0`). Development and CI use the version in `.ruby-version`, currently
-4.0.5, for example with [chruby](https://github.com/postmodern/chruby):
+Ruby 4.0 or newer.
+
+## Install
 
 ```sh
-chruby ruby-4.0.5
+gem install band-mcp-server
 ```
 
-## Setup
+This puts a `band-mcp-server` executable on your `PATH`. To run it without installing, RubyGems can fetch and run it
+on demand (the gem and executable share a name, but `gem exec` needs the gem named explicitly):
 
 ```sh
-bundle install
-cp .env.example .env    # then set BAND_ACCESS_TOKEN
+gem exec -g band-mcp-server band-mcp-server
 ```
 
 ### Getting a BAND access token
@@ -59,15 +60,25 @@ Register an app on the [BAND developer site](https://developers.band.us) and get
 [API guide](https://developers.band.us/develop/guide/api) covers the details. The server only consumes the token and
 sends it to BAND as an `Authorization: Bearer` header. It does not run any OAuth flow itself.
 
+### Configuring the token
+
+Put the token in `~/.config/band-mcp-server/config` (or `$XDG_CONFIG_HOME/band-mcp-server/config` if you set that):
+
+```sh
+mkdir -p ~/.config/band-mcp-server
+echo 'BAND_ACCESS_TOKEN=your-token' > ~/.config/band-mcp-server/config
+chmod 600 ~/.config/band-mcp-server/config
+```
+
 A value already set in the environment (for example through the MCP client's `env` setting) takes precedence over
-`.env`.
+the file.
 
 ## Running
 
 Register it with Claude Code:
 
 ```sh
-claude mcp add band -- /path/to/ruby-band-mcp-server/bin/band-mcp-server
+claude mcp add band -- band-mcp-server
 ```
 
 The server speaks MCP over stdio, so it is normally launched by a client rather than run by hand.
@@ -75,7 +86,7 @@ The server speaks MCP over stdio, so it is normally launched by a client rather 
 ### Claude Desktop
 
 Claude Desktop starts servers with a minimal environment, so a version manager such as chruby is not active and
-`#!/usr/bin/env ruby` finds the wrong Ruby (the system Ruby, if any). With chruby, launch the server through
+the installed executable's `#!/usr/bin/env ruby` finds the wrong Ruby (the system Ruby, if any). With chruby, launch the server through
 [`chruby-exec`](https://github.com/postmodern/chruby#chruby-exec), which selects the Ruby and its `GEM_HOME` for you.
 
 `chruby-exec` does that by running the command in a login shell (`$SHELL -l -c`), so two things must hold. chruby has
@@ -93,29 +104,30 @@ stream and Desktop could not parse the handshake.
      "mcpServers": {
        "band": {
          "command": "/path/to/chruby-exec",
-         "args": ["ruby-4", "--", "ruby", "/path/to/ruby-band-mcp-server/bin/band-mcp-server"]
+         "args": ["ruby-4", "--", "band-mcp-server"]
        }
      }
    }
    ```
 
    chruby matches `ruby-4` against the installed Rubies by name, so it picks a 4.x Ruby; use a fuller name such as
-   `ruby-4.0.5` to pin one. Run `bundle install` under that same Ruby.
+   `ruby-4.0.5` to pin one. Run `gem install band-mcp-server` under that same Ruby.
 
-   Keep the token in `.env`; the launcher loads it by absolute path, so the working directory does not matter. Setting
-   `BAND_ACCESS_TOKEN` in an `env` map instead also works and takes precedence, but puts the secret in Desktop's
-   config file.
+   Keep the token in the config file described above; it is loaded by absolute path, so the working directory does not
+   matter. Setting `BAND_ACCESS_TOKEN` in an `env` map instead also works and takes precedence, but puts the secret in
+   Desktop's config file.
 
-   Without chruby, use the absolute path of a Ruby 4.0 or newer that ran `bundle install` as `command`, put the script
-   in `args`, and set `GEM_HOME` to the directory holding the installed gems (`gem env gemdir` prints it, unless a
-   Bundler setting such as `BUNDLE_PATH` put them elsewhere):
+   Without chruby, use the absolute path of the installed executable (`which band-mcp-server`) as `command`. If that
+   Ruby is not the first `ruby` on Desktop's minimal `PATH`, use the absolute path of a Ruby 4.0 or newer as `command`
+   instead, put the executable in `args`, and set `GEM_HOME` to the directory holding the installed gems
+   (`gem env gemdir` prints it):
 
    ```json
    {
      "mcpServers": {
        "band": {
          "command": "/path/to/ruby",
-         "args": ["/path/to/ruby-band-mcp-server/bin/band-mcp-server"],
+         "args": ["/path/to/band-mcp-server"],
          "env": { "GEM_HOME": "/path/to/gem/dir" }
        }
      }
@@ -135,7 +147,7 @@ server starts under that Ruby with its gems; it does not check the token, which 
 
 ```sh
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"check","version":"0"}}}' |
-  env -i HOME="$HOME" PATH=/usr/bin:/bin "$(which chruby-exec)" ruby-4 -- ruby /path/to/ruby-band-mcp-server/bin/band-mcp-server
+  env -i HOME="$HOME" PATH=/usr/bin:/bin "$(which chruby-exec)" ruby-4 -- band-mcp-server
 ```
 
 If the tools do not show up, read `~/Library/Logs/Claude/mcp-server-band.log`:
@@ -144,14 +156,24 @@ If the tools do not show up, read `~/Library/Logs/Claude/mcp-server-band.log`:
 | ----------------------------------------------- | ------------------------------------------------------------------------------ |
 | `spawn … ENOENT`                                | `command` is not an absolute path to an existing `chruby-exec` (or Ruby).      |
 | `chruby: unknown Ruby: …`                       | No installed Ruby matches the name in `args`; compare with the output of `chruby`. |
-| `Could not find dotenv-…, mcp-…` (gems missing) | `bundle install` was run under a different Ruby; run it under the one in args. |
-| `Your Ruby version is …, but your Gemfile …`    | The chosen Ruby is older than 4.0; point `args` (or `command`) at a 4.x Ruby.  |
-| `BAND_ACCESS_TOKEN is not set`                  | No `.env` with the token, and no `BAND_ACCESS_TOKEN` in an `env` map.          |
+| `Could not find dotenv-…, mcp-…` (gems missing) | `gem install` was run under a different Ruby; run it under the one in args.  |
+| `requires Ruby version >= 4.0`                  | The chosen Ruby is older than 4.0; point `args` (or `command`) at a 4.x Ruby.  |
+| `BAND_ACCESS_TOKEN is not set`                  | No config file with the token, and no `BAND_ACCESS_TOKEN` in an `env` map.     |
 | `command not found: chruby`                     | chruby is only loaded in `~/.zshrc`; load it in `~/.zprofile` or `~/.zshenv`.  |
 | Desktop cannot parse the server's output        | A shell startup file prints to stdout; `chruby-exec` runs a login shell.       |
 | `BAND API error 10401`                          | BAND's "Unauthorized" code: the token is missing, invalid or expired.          |
 
 ## Development
+
+From a checkout, use Bundler instead of the installed gem. A `.env` in the checkout root takes priority over the
+user config file, and `bin/band-mcp-server` (which sets up Bundler itself) replaces `band-mcp-server`:
+
+```sh
+chruby ruby-4.0.5   # or any manager that reads .ruby-version
+bundle install
+cp .env.example .env    # then set BAND_ACCESS_TOKEN
+claude mcp add band -- /path/to/ruby-band-mcp-server/bin/band-mcp-server
+```
 
 ```sh
 bundle exec rake    # rubocop, rbs drift check, steep, rspec

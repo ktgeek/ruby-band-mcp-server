@@ -5,4 +5,8 @@ module BandMCP
 
   # : () -> untyped
   def self.build_server: () -> untyped
+
+  # Entry point shared by the gem's executable and the checkout's launcher.
+  # : () -> untyped
+  def self.run: () -> untyped
 end
