@@ -32,3 +32,47 @@ jobs:
       - run: gem build band-mcp-server.gemspec
       - uses: rubygems/configure-rubygems-credentials@v2.1.0
       - run: gem push band-mcp-server-*.gem
+
+  image:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Push to ghcr.io with the workflow's GITHUB_TOKEN.
+    env:
+      IMAGE: ghcr.io/ktgeek/band-mcp-server
+    steps:
+      - uses: actions/checkout@v7
+      - name: Wait for the gem to reach the RubyGems index
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          for attempt in $(seq 1 20); do
+            gem specification band-mcp-server --version "$version" --remote >/dev/null 2>&1 && exit 0
+            echo "band-mcp-server $version not indexed yet (attempt $attempt)"
+            sleep 15
+          done
+          echo "band-mcp-server $version never appeared on RubyGems" >&2
+          exit 1
+      - uses: docker/setup-qemu-action@v4.4.0
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=latest
+      - uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          build-args: VERSION=${{ env.VERSION }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
