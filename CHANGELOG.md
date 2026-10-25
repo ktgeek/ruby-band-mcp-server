@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add a `Dockerfile` that installs the released gem, for running the server with `docker run -i`.
+
 ## v1.0.0
 
 First stable release.

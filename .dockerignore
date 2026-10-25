@@ -1,0 +1,2 @@
+# The image installs the published gem and needs no files from the checkout; this also keeps .env out.
+*
