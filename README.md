@@ -54,6 +54,24 @@ on demand (the gem and executable share a name, but `gem exec` needs the gem nam
 gem exec -g band-mcp-server band-mcp-server
 ```
 
+### Docker
+
+If you would rather not manage a Ruby 4.0 install, a multi-architecture (amd64 and arm64) image of each release is
+published to `ghcr.io/ktgeek/band-mcp-server`. The server speaks MCP over stdio, so run it with `-i`, and pass the
+token through the environment (the image has no config file):
+
+```sh
+export BAND_ACCESS_TOKEN=your-token
+docker run -i --rm -e BAND_ACCESS_TOKEN ghcr.io/ktgeek/band-mcp-server
+```
+
+Tags are the release version (for example `1.0.0`) and `latest`. Register it with Claude Code:
+
+```sh
+claude mcp add band -e BAND_ACCESS_TOKEN=your-token -- \
+  docker run -i --rm -e BAND_ACCESS_TOKEN ghcr.io/ktgeek/band-mcp-server
+```
+
 ### Getting a BAND access token
 
 Register an app on the [BAND developer site](https://developers.band.us) and get an access token for it; the
@@ -134,6 +152,21 @@ stream and Desktop could not parse the handshake.
      }
    }
    ```
+   **With Docker**, none of the above applies: Desktop only needs the absolute path of `docker` (`which docker`), and
+   the token goes in an `env` map, which puts the secret in Desktop's config file:
+
+   ```json
+   {
+     "mcpServers": {
+       "band": {
+         "command": "/path/to/docker",
+         "args": ["run", "-i", "--rm", "-e", "BAND_ACCESS_TOKEN", "ghcr.io/ktgeek/band-mcp-server"],
+         "env": { "BAND_ACCESS_TOKEN": "your-token" }
+       }
+     }
+   }
+   ```
+
 3. Quit Claude Desktop completely (Cmd-Q) and reopen it. The `band` tools appear in the tools menu of a new chat.
 
 Then ask Claude to run `ping`, which reports whether the token is set without showing it, and try "Which bands am I
