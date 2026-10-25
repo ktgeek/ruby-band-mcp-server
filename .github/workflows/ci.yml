@@ -62,3 +62,18 @@ jobs:
           gem install --no-document ./band-mcp-server-*.gem
           echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}' |
             "$GEM_HOME/bin/band-mcp-server" | grep -q '"serverInfo"'
+
+  # Builds the Dockerfile against the newest published gem (the image installs from RubyGems, not the checkout), which
+  # catches a base image or USER problem before a release tag does.
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the image
+        run: |
+          version="$(gem list --remote --exact band-mcp-server | sed -E 's/^band-mcp-server \(([^)]+)\)$/\1/')"
+          docker build --build-arg VERSION="$version" --tag band-mcp-server:ci .
+      - name: Smoke-test the image
+        run: |
+          echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}' |
+            docker run -i --rm band-mcp-server:ci | grep -q '"serverInfo"'
