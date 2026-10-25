@@ -46,8 +46,9 @@ CI checks; `rake -T` lists the individual tasks.
   fails, run the workflow by hand (`workflow_dispatch`, version without the `v`) rather than re-tagging; the gem
   cannot be pushed twice. CI's `image` job builds the Dockerfile against the newest published gem. Its `registry` job
   then stamps the tag's version into `server.json` and publishes it to the MCP Registry with GitHub OIDC (skipped for
-  prereleases and manual runs); re-run that job alone if it fails. Still bump `version` and the image tag in
-  `server.json` in the release commit so the checked-in copy matches; it is not part of the gem.
+  prereleases and manual runs); re-run that job alone if it fails, and treat a duplicate-version error as "already
+  published". Bump `version` and the image tag in
+  `server.json` in the release commit; a spec fails until they match `VERSION`. It is not part of the gem.
 - Keep this file current: when a change adds a command, task, or architectural piece, document it here in the same
   commit.
 

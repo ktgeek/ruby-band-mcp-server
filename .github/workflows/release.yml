@@ -43,6 +43,8 @@ jobs:
 
   image:
     needs: release
+    outputs:
+      stable: ${{ steps.version.outputs.stable }}
     # A manual run skips `release`, which would otherwise skip this job too.
     if: ${{ !cancelled() && (needs.release.result == 'success' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
@@ -54,13 +56,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Wait for the gem to reach the RubyGems index
+        id: version
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
           version="${INPUT_VERSION:-${GITHUB_REF_NAME#v}}"
           echo "VERSION=$version" >> "$GITHUB_ENV"
           # Only a plain X.Y.Z release moves `latest`; a prerelease such as 1.1.0.rc1 must not.
-          if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "STABLE=true" >> "$GITHUB_ENV"; else echo "STABLE=false" >> "$GITHUB_ENV"; fi
+          if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then stable=true; else stable=false; fi
+          echo "stable=$stable" >> "$GITHUB_OUTPUT"
           for attempt in $(seq 1 20); do
             gem specification band-mcp-server --version "$version" --remote >/dev/null 2>&1 && exit 0
             echo "band-mcp-server $version not indexed yet (attempt $attempt)"
@@ -81,7 +85,7 @@ jobs:
           images: ${{ env.IMAGE }}
           tags: |
             type=raw,value=${{ env.VERSION }}
-            type=raw,value=latest,enable=${{ env.STABLE }}
+            type=raw,value=latest,enable=${{ steps.version.outputs.stable }}
       - uses: docker/build-push-action@v7.4.0
         with:
           context: .
@@ -91,36 +95,29 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           push: true
 
-  # The registry checks the image and its label, so this waits for `image`. A manual image rebuild does not republish.
+  # The registry checks the image and its label, so this waits for `image`. A manual image rebuild does not republish,
+  # and a prerelease (not semver, and not tagged `latest`) is not listed.
   registry:
     needs: image
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && needs.image.outputs.stable == 'true'
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: read
       id-token: write # MCP Registry GitHub OIDC login; no secret is stored.
     env:
+      # Dependabot does not track this; bump it by hand. The cosign check below fails loudly if it goes stale.
       MCP_PUBLISHER_VERSION: v1.8.4
     steps:
       - uses: actions/checkout@v7
       - name: Stamp the tag's version into server.json
-        id: stamp
         run: |
           version="${GITHUB_REF_NAME#v}"
-          # A prerelease such as 1.1.0.rc1 is not semver, which the registry expects, and gets no `latest` image tag.
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "not publishing prerelease $version to the MCP Registry"
-            echo "stable=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "stable=true" >> "$GITHUB_OUTPUT"
           jq --arg v "$version" '.version = $v | .packages[0].identifier |= sub(":[^:]*$"; ":" + $v)' server.json > server.tmp
           mv server.tmp server.json
           cat server.json
-      - if: steps.stamp.outputs.stable == 'true'
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
       - name: Download and verify mcp-publisher
-        if: steps.stamp.outputs.stable == 'true'
         run: |
           set -euo pipefail
           archive="mcp-publisher_linux_amd64.tar.gz"
@@ -134,7 +131,5 @@ jobs:
             "$archive"
           tar xzf "$archive" mcp-publisher
           rm -f "$archive" "$archive.sigstore.json"
-      - if: steps.stamp.outputs.stable == 'true'
-        run: ./mcp-publisher login github-oidc
-      - if: steps.stamp.outputs.stable == 'true'
-        run: ./mcp-publisher publish
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish
