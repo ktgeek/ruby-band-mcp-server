@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     band-mcp-server (1.0.0)
-      dotenv
+      dotenv (~> 3.2)
       mcp (~> 1.8)
 
 GEM
