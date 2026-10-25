@@ -4,9 +4,9 @@ FROM ruby:4.0-slim
 
 ARG VERSION
 
-LABEL io.modelcontextprotocol.server.name="io.github.ktgeek/band-mcp-server" \
-      org.opencontainers.image.source="https://github.com/ktgeek/ruby-band-mcp-server" \
-      org.opencontainers.image.licenses="GPL-3.0-only"
+# The MCP Registry reads this label to match the image to its server entry. The OCI source and license labels come from
+# docker/metadata-action in the release workflow.
+LABEL io.modelcontextprotocol.server.name="io.github.ktgeek/band-mcp-server"
 
 RUN test -n "$VERSION" || { echo "build with --build-arg VERSION=<gem version>" >&2; exit 1; } \
     && gem install band-mcp-server --version "$VERSION" --no-document
