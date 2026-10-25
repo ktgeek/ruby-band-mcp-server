@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Add a `Dockerfile` that installs the released gem, for running the server with `docker run -i`.
+- Publish a multi-architecture Docker image to `ghcr.io/ktgeek/band-mcp-server` on each release, for running the
+  server with `docker run -i` (see the README).
 
 ## v1.0.0
 
