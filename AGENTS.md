@@ -44,7 +44,8 @@ CI checks; `rake -T` lists the individual tasks.
   environment, no stored API key). Its `image` job then waits for RubyGems to index the version and pushes the
   multi-arch image to `ghcr.io/ktgeek/band-mcp-server` (`latest` only for plain `X.Y.Z` versions). If only that job
   fails, run the workflow by hand (`workflow_dispatch`, version without the `v`) rather than re-tagging; the gem
-  cannot be pushed twice. CI's `image` job builds the Dockerfile against the newest published gem.
+  cannot be pushed twice. CI's `image` job builds the Dockerfile against the newest published gem. Also bump
+  `version` and the image tag in `server.json` (the MCP Registry listing); it is not part of the gem.
 - Keep this file current: when a change adds a command, task, or architectural piece, document it here in the same
   commit.
 
@@ -81,6 +82,8 @@ CI checks; `rake -T` lists the individual tasks.
   Bundler and the load path. Both just call `BandMCP.run` and hold no logic.
 - `Dockerfile` builds the OCI image: it `gem install`s the released gem (the `VERSION` build arg) rather than the
   checkout, so the image matches what RubyGems serves. `.dockerignore` excludes the whole checkout (and so `.env`).
+- `server.json` is the MCP Registry metadata (an OCI package pointing at the ghcr.io image). The registry matches its
+  `name` against the image's `io.modelcontextprotocol.server.name` label, so the two must stay equal.
 - `lib/band_mcp.rb` requires the pieces and exposes `BandMCP.build_server`, which registers every class in
   `BandMCP::TOOLS`.
 - `lib/band_mcp/config.rb` owns environment access (`.env` loading, `BAND_ACCESS_TOKEN`). Priority is existing ENV,

@@ -4,6 +4,7 @@
 
 - Publish a multi-architecture Docker image to `ghcr.io/ktgeek/band-mcp-server` on each release, for running the
   server with `docker run -i` (see the README).
+- Add a `server.json` describing the image for the MCP Registry.
 
 ## v1.0.0
 
