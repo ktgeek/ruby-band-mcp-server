@@ -152,6 +152,7 @@ stream and Desktop could not parse the handshake.
      }
    }
    ```
+
    **With Docker**, none of the above applies: Desktop only needs the absolute path of `docker` (`which docker`), and
    the token goes in an `env` map, which puts the secret in Desktop's config file:
 
@@ -166,6 +167,10 @@ stream and Desktop could not parse the handshake.
      }
    }
    ```
+
+   To keep the secret out of that file, write `BAND_ACCESS_TOKEN=your-token` to a file only you can read, remove the
+   `env` map and the `"-e", "BAND_ACCESS_TOKEN"` pair, and add `"--env-file", "/path/to/that/file"` before the image
+   name in `args`.
 
 3. Quit Claude Desktop completely (Cmd-Q) and reopen it. The `band` tools appear in the tools menu of a new chat.
 
