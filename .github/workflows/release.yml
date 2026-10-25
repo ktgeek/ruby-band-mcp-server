@@ -90,3 +90,51 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
+
+  # The registry checks the image and its label, so this waits for `image`. A manual image rebuild does not republish.
+  registry:
+    needs: image
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # MCP Registry GitHub OIDC login; no secret is stored.
+    env:
+      MCP_PUBLISHER_VERSION: v1.8.4
+    steps:
+      - uses: actions/checkout@v7
+      - name: Stamp the tag's version into server.json
+        id: stamp
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          # A prerelease such as 1.1.0.rc1 is not semver, which the registry expects, and gets no `latest` image tag.
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "not publishing prerelease $version to the MCP Registry"
+            echo "stable=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "stable=true" >> "$GITHUB_OUTPUT"
+          jq --arg v "$version" '.version = $v | .packages[0].identifier |= sub(":[^:]*$"; ":" + $v)' server.json > server.tmp
+          mv server.tmp server.json
+          cat server.json
+      - if: steps.stamp.outputs.stable == 'true'
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Download and verify mcp-publisher
+        if: steps.stamp.outputs.stable == 'true'
+        run: |
+          set -euo pipefail
+          archive="mcp-publisher_linux_amd64.tar.gz"
+          base_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+          curl --fail --location --silent --show-error --output "$archive" "$base_url/$archive"
+          curl --fail --location --silent --show-error --output "$archive.sigstore.json" "$base_url/$archive.sigstore.json"
+          cosign verify-blob \
+            --bundle "$archive.sigstore.json" \
+            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "$archive"
+          tar xzf "$archive" mcp-publisher
+          rm -f "$archive" "$archive.sigstore.json"
+      - if: steps.stamp.outputs.stable == 'true'
+        run: ./mcp-publisher login github-oidc
+      - if: steps.stamp.outputs.stable == 'true'
+        run: ./mcp-publisher publish

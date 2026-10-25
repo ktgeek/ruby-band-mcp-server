@@ -44,8 +44,10 @@ CI checks; `rake -T` lists the individual tasks.
   environment, no stored API key). Its `image` job then waits for RubyGems to index the version and pushes the
   multi-arch image to `ghcr.io/ktgeek/band-mcp-server` (`latest` only for plain `X.Y.Z` versions). If only that job
   fails, run the workflow by hand (`workflow_dispatch`, version without the `v`) rather than re-tagging; the gem
-  cannot be pushed twice. CI's `image` job builds the Dockerfile against the newest published gem. Also bump
-  `version` and the image tag in `server.json` (the MCP Registry listing); it is not part of the gem.
+  cannot be pushed twice. CI's `image` job builds the Dockerfile against the newest published gem. Its `registry` job
+  then stamps the tag's version into `server.json` and publishes it to the MCP Registry with GitHub OIDC (skipped for
+  prereleases and manual runs); re-run that job alone if it fails. Still bump `version` and the image tag in
+  `server.json` in the release commit so the checked-in copy matches; it is not part of the gem.
 - Keep this file current: when a change adds a command, task, or architectural piece, document it here in the same
   commit.
 
