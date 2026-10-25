@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ktgeek/band-mcp-server",
+  "title": "BAND",
+  "description": "List bands and read, post, and comment on BAND posts through the BAND Open API.",
+  "repository": { "url": "https://github.com/ktgeek/ruby-band-mcp-server", "source": "github" },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/ktgeek/band-mcp-server:1.0.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "BAND_ACCESS_TOKEN",
+          "description": "Access token for an app registered at developers.band.us",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}
