@@ -75,6 +75,8 @@ CI checks; `rake -T` lists the individual tasks.
   added to it.
 - `exe/band-mcp-server` is the gem's executable and `bin/band-mcp-server` the checkout's launcher, which also sets up
   Bundler and the load path. Both just call `BandMCP.run` and hold no logic.
+- `Dockerfile` builds the OCI image: it `gem install`s the released gem (the `VERSION` build arg) rather than the
+  checkout, so the image matches what RubyGems serves. `.dockerignore` excludes the whole checkout (and so `.env`).
 - `lib/band_mcp.rb` requires the pieces and exposes `BandMCP.build_server`, which registers every class in
   `BandMCP::TOOLS`.
 - `lib/band_mcp/config.rb` owns environment access (`.env` loading, `BAND_ACCESS_TOKEN`). Priority is existing ENV,
