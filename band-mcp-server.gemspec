@@ -26,6 +26,6 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = ["band-mcp-server"]
 
-  spec.add_dependency "dotenv"
+  spec.add_dependency "dotenv", "~> 3.2"
   spec.add_dependency "mcp", "~> 1.8"
 end
