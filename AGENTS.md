@@ -39,8 +39,12 @@ CI checks; `rake -T` lists the individual tasks.
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): lowercase
   imperative subject of 50 characters (72 at most), body wrapped at 72.
 - Releasing: move the `CHANGELOG.md` entries under a new version heading, bump `BandMCP::VERSION`, run
-  `bundle install` to refresh `Gemfile.lock`, merge, then push a `vX.Y.Z` tag. `.github/workflows/release.yml` checks the tag against `VERSION`, runs `rake`, and pushes the gem to
-  RubyGems through trusted publishing (the `release` environment, no stored API key).
+  `bundle install` to refresh `Gemfile.lock`, merge, then push a `vX.Y.Z` tag. `.github/workflows/release.yml` checks
+  the tag against `VERSION`, runs `rake`, and pushes the gem to RubyGems through trusted publishing (the `release`
+  environment, no stored API key). Its `image` job then waits for RubyGems to index the version and pushes the
+  multi-arch image to `ghcr.io/ktgeek/band-mcp-server` (`latest` only for plain `X.Y.Z` versions). If only that job
+  fails, run the workflow by hand (`workflow_dispatch`, version without the `v`) rather than re-tagging; the gem
+  cannot be pushed twice. CI's `image` job builds the Dockerfile against the newest published gem.
 - Keep this file current: when a change adds a command, task, or architectural piece, document it here in the same
   commit.
 

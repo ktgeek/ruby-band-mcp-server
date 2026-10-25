@@ -3,12 +3,20 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # Rebuilds the image for a version that is already on RubyGems, e.g. after a failed `image` job. It does not
+  # release the gem.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Gem version to build the image for, without the leading v
+        required: true
 
 permissions:
   contents: read
 
 jobs:
   release:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: release
     permissions:
@@ -35,6 +43,8 @@ jobs:
 
   image:
     needs: release
+    # A manual run skips `release`, which would otherwise skip this job too.
+    if: ${{ !cancelled() && (needs.release.result == 'success' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,9 +54,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Wait for the gem to reach the RubyGems index
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="${INPUT_VERSION:-${GITHUB_REF_NAME#v}}"
           echo "VERSION=$version" >> "$GITHUB_ENV"
+          # Only a plain X.Y.Z release moves `latest`; a prerelease such as 1.1.0.rc1 must not.
+          if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "STABLE=true" >> "$GITHUB_ENV"; else echo "STABLE=false" >> "$GITHUB_ENV"; fi
           for attempt in $(seq 1 20); do
             gem specification band-mcp-server --version "$version" --remote >/dev/null 2>&1 && exit 0
             echo "band-mcp-server $version not indexed yet (attempt $attempt)"
@@ -66,8 +80,8 @@ jobs:
         with:
           images: ${{ env.IMAGE }}
           tags: |
-            type=semver,pattern={{version}}
-            type=raw,value=latest
+            type=raw,value=${{ env.VERSION }}
+            type=raw,value=latest,enable=${{ env.STABLE }}
       - uses: docker/build-push-action@v7.4.0
         with:
           context: .
